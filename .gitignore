@@ -1,0 +1,6 @@
+pocketbase.exe
+pb_data/
+pocketbase_0.36.8_windows_amd64/
+__pycache__/
+*.pyc
+.env

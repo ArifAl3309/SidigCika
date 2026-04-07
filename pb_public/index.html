@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - NAMA APLIKASI</title>
+    
+    <!-- CDN Wajib Sesuai Bagian 12 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
+    <script src="/app.js"></script>
+    <link rel="stylesheet" href="/style.css">
+    
+    <script>
+        // Cek redirect jika sudah login
+        if (pb.authStore.isValid) {
+            window.location.href = pb.authStore.model.role === 'teacher' ? '/guru.html' : '/dashboard.html';
+        }
+    </script>
+</head>
+<body class="bg-gray-50 flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-[400px] bg-white p-8 rounded-xl shadow-md">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">NAMA APLIKASI</h1>
+        
+        <form id="login-form" class="space-y-4">
+            <div>
+                <input type="email" id="email" required placeholder="Email sekolah"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+                <input type="password" id="password" required placeholder="Password"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <button type="submit" id="submit-btn"
+                class="w-full py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                Masuk
+            </button>
+            
+            <div id="error-msg" class="text-red-500 text-sm text-center hidden"></div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            // Tampilkan pesan redirect dari halaman lain jika ada
+            const msg = sessionStorage.getItem('redirect_message');
+            if (msg) {
+                showToast(msg, 'info');
+                sessionStorage.removeItem('redirect_message');
+            }
+
+            const form = document.getElementById('login-form');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const errorMsg = document.getElementById('error-msg');
+            const submitBtn = document.getElementById('submit-btn');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                errorMsg.classList.add('hidden');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Memuat...';
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+                try {
+                    await pb.collection('users').authWithPassword(emailInput.value, passwordInput.value);
+                    localStorage.setItem('pb_token', pb.authStore.token);
+                    localStorage.setItem('pb_user', JSON.stringify(pb.authStore.model));
+                    
+                    window.location.href = pb.authStore.model.role === 'teacher' ? '/guru.html' : '/dashboard.html';
+                } catch (error) {
+                    errorMsg.textContent = 'Login gagal. Periksa email dan password Anda.';
+                    errorMsg.classList.remove('hidden');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Masuk';
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
