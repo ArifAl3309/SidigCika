@@ -104,6 +104,7 @@ async def submit(
     description: str = Form(""),
     authorization: str = Header(default=""),
 ):
+    print(">>> HIT SUBMIT ENDPOINT! <<<")
     try:
         # ── Validasi header Authorization (lokal, tanpa network) ─────────────
         if not authorization.startswith("Bearer "):
@@ -144,7 +145,7 @@ async def submit(
 
         # ── LANGKAH 1: Verifikasi token user ke PocketBase ───────────────────
         async with httpx.AsyncClient() as client:
-            r = await client.get(
+            r = await client.post(
                 f"{PB_URL}/api/collections/users/auth-refresh",
                 headers={"Authorization": f"Bearer {token}"},
                 timeout=10.0,
@@ -195,6 +196,7 @@ async def submit(
         # ── LANGKAH 3: Validasi file ─────────────────────────────────────────
         file_bytes = await file.read()
         if len(file_bytes) > 5 * 1024 * 1024:
+            print("ERROR 400: file_too_large")
             return JSONResponse(
                 status_code=400,
                 content={
@@ -203,6 +205,7 @@ async def submit(
                 },
             )
         if file.content_type != "application/pdf":
+            print(f"ERROR 400: invalid_content_type ({file.content_type})")
             return JSONResponse(
                 status_code=400,
                 content={
@@ -236,8 +239,9 @@ async def submit(
             doc = fitz.open(stream=file_bytes, filetype="pdf")
             text = " ".join(page.get_text() for page in doc)
             word_count = len(text.split())
-        except Exception:
+        except Exception as e:
             # PDF corrupt atau tidak bisa dibaca oleh fitz
+            print(f"ERROR 400: fitz parsing failed - {e}")
             return JSONResponse(
                 status_code=400,
                 content={
@@ -247,6 +251,7 @@ async def submit(
             )
 
         if word_count == 0:
+            print("ERROR 400: empty_pdf (word_count = 0)")
             return JSONResponse(
                 status_code=400,
                 content={
@@ -300,19 +305,24 @@ async def submit(
                 "message": "Terjadi kesalahan. Coba lagi.",
             },
         )
-    except httpx.HTTPStatusError:
+    except httpx.HTTPStatusError as e:
+        import traceback
+        traceback.print_exc()
+        print("Response text:", e.response.text if hasattr(e.response, 'text') else 'No response text')
         return JSONResponse(
             status_code=500,
             content={
                 "error": "server_error",
-                "message": "Terjadi kesalahan. Coba lagi.",
+                "message": f"Terjadi kesalahan: {str(e)}",
             },
         )
-    except Exception:
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JSONResponse(
             status_code=500,
             content={
                 "error": "server_error",
-                "message": "Terjadi kesalahan. Coba lagi.",
+                "message": f"Terjadi kesalahan: {str(e)}",
             },
         )

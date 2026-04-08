@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - NAMA APLIKASI</title>
+    <!-- CDN Wajib Sesuai Bagian 12 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
+    <script src="/app.js"></script>
+    <link rel="stylesheet" href="/style.css">
+    
+    <script>
+        if (!pb.authStore.isValid) {
+            sessionStorage.setItem('redirect_message', 'Sesi berakhir, silakan login kembali.');
+            window.location.href = '/index.html';
+        }
+    </script>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-800">NAMA APLIKASI</h1>
+            <nav class="flex items-center gap-4">
+                <a href="/profile.html" class="text-gray-600 hover:text-gray-900 font-medium text-sm flex items-center gap-1">
+                    <i data-lucide="user" class="w-4 h-4"></i> Profil
+                </a>
+                <button onclick="logout()" class="text-red-500 hover:text-red-700 font-medium text-sm flex items-center gap-1">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow w-full max-w-5xl mx-auto px-4 py-8 relative">
+        <div class="mb-6 flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-gray-800">Leaderboard Global</h2>
+        </div>
+
+        <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
+            <div id="table-error" class="hidden p-8 text-center text-gray-500">
+                <p class="mb-4">Gagal memuat data.</p>
+                <button onclick="fetchAndRenderLeaderboard()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">Coba Lagi</button>
+            </div>
+            
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left border-collapse" id="leaderboard-table">
+                    <thead class="bg-gray-100 border-b border-gray-200">
+                        <tr>
+                            <th class="py-3 px-4 text-sm font-semibold text-gray-600 w-16">#</th>
+                            <th class="py-3 px-4 text-sm font-semibold text-gray-600">Nama</th>
+                            <th class="py-3 px-4 text-sm font-semibold text-gray-600">Judul Naskah</th>
+                            <th class="py-3 px-4 text-sm font-semibold text-gray-600 w-32">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body" class="divide-y divide-gray-100">
+                        <tr><td colspan="4" class="py-12 text-center text-gray-500">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- FAB Tombol Submit -->
+    <button id="fab-submit" onclick="openModal()" 
+        class="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition flex items-center justify-center z-40 outline-none focus:ring-4 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed">
+        <i data-lucide="plus" class="w-6 h-6" id="fab-icon"></i>
+        <span id="fab-text" class="hidden font-mono text-sm tracking-widest absolute"></span>
+    </button>
+
+    <!-- Modal Submit -->
+    <div id="submit-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4 transition-opacity">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <h3 class="text-lg font-bold text-gray-800">Submit Naskah</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition outline-none">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="submit-form" class="p-6 flex-grow overflow-y-auto space-y-5">
+                <div id="modal-error" class="hidden p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-200"></div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Judul Naskah</label>
+                    <input type="text" id="title-input" required maxlength="150" placeholder="Masukkan judul..." 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <div class="mt-1 text-right text-xs text-gray-500"><span id="title-counter">0</span>/150</div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Deskripsi</label>
+                    <textarea id="desc-input" rows="3" maxlength="500" placeholder="Opsional..." 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
+                    <div class="mt-1 text-right text-xs text-gray-500"><span id="desc-counter">0</span>/500</div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">File PDF</label>
+                    
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer" id="file-drop-area">
+                        <input type="file" id="file-input" accept="application/pdf" class="hidden" required>
+                        <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-400 mb-2"></i>
+                        <button type="button" id="file-btn" class="px-4 py-2 bg-white border border-gray-300 rounded shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition mb-2">
+                            Pilih PDF
+                        </button>
+                        <p class="text-xs text-gray-500 text-center" id="file-info-text">Ukuran maks 5MB.</p>
+                    </div>
+                    <p id="file-error" class="text-red-500 text-xs mt-1 hidden"></p>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="submit-btn" 
+                        class="w-full py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center justify-center gap-2">
+                        Kirim
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Init Lucide
+        lucide.createIcons();
+
+        // Elemen DOM Leaderboard
+        const tableBody = document.getElementById('leaderboard-body');
+        const tableError = document.getElementById('table-error');
+        const tableContainer = document.getElementById('leaderboard-table');
+
+        // Elemen DOM Modal
+        const modal = document.getElementById('submit-modal');
+        const submitForm = document.getElementById('submit-form');
+        const modalError = document.getElementById('modal-error');
+        const submitBtn = document.getElementById('submit-btn');
+
+        // Elemen FAB
+        const fabButton = document.getElementById('fab-submit');
+        const fabIcon = document.getElementById('fab-icon');
+        const fabText = document.getElementById('fab-text');
+
+        // State Cooldown
+        let cooldownInterval = null;
+
+        /**
+         * LEADERBOARD LOGIC
+         */
+        function renderLeaderboard(data) {
+            tableBody.innerHTML = '';
+            tableError.classList.add('hidden');
+            tableContainer.classList.remove('hidden');
+
+            if (data.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="4" class="py-8 text-center text-gray-500">Belum ada submission.</td>';
+                tableBody.appendChild(tr);
+                return;
+            }
+
+            const currentUserId = pb.authStore.model?.id;
+
+            data.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'transition hover:bg-gray-50/50';
+                
+                // Styling warna berdasarkan rank
+                if (index === 0) tr.style.backgroundColor = '#fef9c3';
+                else if (index === 1) tr.style.backgroundColor = '#f3f4f6';
+                else if (index === 2) tr.style.backgroundColor = '#fff7ed';
+
+                // Indikator jika milik user
+                if (item.userId === currentUserId) {
+                    tr.style.borderLeft = '3px solid #3b82f6';
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-medium text-gray-500">${index + 1}</td>
+                    <td class="py-3 px-4 font-medium text-gray-800">${escapeHtml(item.name)}</td>
+                    <td class="py-3 px-4 text-gray-600 truncate max-w-sm">${escapeHtml(item.title)}</td>
+                    <td class="py-3 px-4 font-bold text-blue-600">${item.score}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        async function fetchAndRenderLeaderboard() {
+            try {
+                const records = await pb.collection('submissions').getFullList({
+                    filter: 'status = "processed"',
+                    expand: 'user_id',
+                    fields: 'id,user_id,title,score,expand.user_id.name'
+                });
+
+                const map = {};
+                records.forEach(r => {
+                    const uid = r.user_id;
+                    const name = r.expand?.user_id?.name ?? 'Unknown';
+                    if (!map[uid] || r.score > map[uid].score) {
+                        map[uid] = { userId: uid, name, score: r.score, title: r.title };
+                    }
+                });
+
+                const sorted = Object.values(map).sort((a, b) => b.score - a.score);
+
+                const isTeacher = pb.authStore.model?.role === 'teacher';
+                const displayed = isTeacher ? sorted : sorted.slice(0, 10);
+
+                renderLeaderboard(displayed);
+            } catch (error) {
+                tableContainer.classList.add('hidden');
+                tableError.classList.remove('hidden');
+            }
+        }
+
+        // Jalankan fetch awal dan subscribe real-time
+        fetchAndRenderLeaderboard().then(() => {
+            pb.collection('submissions').subscribe('*', async () => {
+                await fetchAndRenderLeaderboard();
+            });
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (cooldownInterval) clearInterval(cooldownInterval);
+            pb.collection('submissions').unsubscribe('*');
+        });
+
+        /**
+         * COOLDOWN LOGIC
+         */
+        function setFabNormal() {
+            fabButton.disabled = false;
+            fabIcon.classList.remove('hidden');
+            fabText.classList.add('hidden');
+            fabButton.classList.remove('bg-gray-400', 'hover:bg-gray-400', 'cursor-not-allowed', 'w-auto', 'px-6', 'rounded-full');
+            fabButton.classList.add('bg-blue-600', 'hover:bg-blue-700', 'w-14', 'h-14', 'rounded-full');
+            if (cooldownInterval) {
+                clearInterval(cooldownInterval);
+                cooldownInterval = null;
+            }
+        }
+
+        function setFabCooldown(timeStr) {
+            fabButton.disabled = true;
+            fabIcon.classList.add('hidden');
+            fabText.classList.remove('hidden');
+            fabText.textContent = timeStr;
+            
+            // Adjust width to fit text tracking
+            fabButton.classList.remove('w-14', 'bg-blue-600', 'hover:bg-blue-700');
+            fabButton.classList.add('bg-gray-400', 'cursor-not-allowed', 'w-auto', 'px-6');
+        }
+
+        function updateFabCooldown() {
+            const lastSubmit = localStorage.getItem('last_submit_time');
+            if (!lastSubmit) { setFabNormal(); return; }
+            
+            const sisa = 300 - Math.floor((Date.now() - Number(lastSubmit)) / 1000);
+            if (sisa <= 0) { setFabNormal(); return; }
+
+            const mm = String(Math.floor(sisa / 60)).padStart(2, '0');
+            const ss = String(sisa % 60).padStart(2, '0');
+            setFabCooldown(`${mm}:${ss}`);
+        }
+
+        function startCooldown(seconds) {
+            localStorage.setItem('last_submit_time', String(Date.now() - (300 - seconds) * 1000));
+            updateFabCooldown();
+            if (!cooldownInterval) {
+                cooldownInterval = setInterval(updateFabCooldown, 1000);
+            }
+        }
+
+        // Init cooldown
+        updateFabCooldown();
+        if (localStorage.getItem('last_submit_time') && fabButton.disabled) {
+            cooldownInterval = setInterval(updateFabCooldown, 1000);
+        }
+
+        /**
+         * MODAL & FORM LOGIC
+         */
+        function openModal() {
+            if (fabButton.disabled) return;
+            resetModal();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // Small timeout for fade effect
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            modal.classList.remove('opacity-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                resetModal();
+            }, 200);
+        }
+
+        function resetModal() {
+            submitForm.reset();
+            modalError.classList.add('hidden');
+            modalError.textContent = '';
+            document.getElementById('file-error').classList.add('hidden');
+            document.getElementById('file-info-text').textContent = 'Ukuran maks 5MB.';
+            document.getElementById('file-info-text').classList.remove('font-semibold', 'text-blue-600');
+            document.getElementById('title-counter').textContent = '0';
+            document.getElementById('desc-counter').textContent = '0';
+            
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Kirim';
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            
+            selectedFileBytes = null;
+        }
+
+        function showErrorInModal(msg) {
+            modalError.textContent = msg;
+            modalError.classList.remove('hidden');
+        }
+
+        // Character counters
+        const titleInput = document.getElementById('title-input');
+        const descInput = document.getElementById('desc-input');
+        
+        titleInput.addEventListener('input', () => {
+            document.getElementById('title-counter').textContent = titleInput.value.length;
+        });
+        
+        descInput.addEventListener('input', () => {
+            document.getElementById('desc-counter').textContent = descInput.value.length;
+        });
+
+        // File Input Kustom
+        const fileArea = document.getElementById('file-drop-area');
+        const fileBtn = document.getElementById('file-btn');
+        const fileInput = document.getElementById('file-input');
+        const fileInfoText = document.getElementById('file-info-text');
+        const fileError = document.getElementById('file-error');
+
+        fileBtn.addEventListener('click', () => fileInput.click());
+        fileArea.addEventListener('click', (e) => {
+            if(e.target !== fileBtn && e.target !== fileInput) {
+                fileInput.click();
+            }
+        });
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(e) {
+            fileError.classList.add('hidden');
+            const file = e.target.files[0];
+            
+            if (!file) {
+                fileInfoText.textContent = 'Ukuran maks 5MB.';
+                fileInfoText.classList.remove('font-semibold', 'text-blue-600');
+                return;
+            }
+
+            if (file.type !== 'application/pdf') {
+                fileError.textContent = 'Hanya file PDF yang diperbolehkan.';
+                fileError.classList.remove('hidden');
+                fileInput.value = '';
+                fileInfoText.textContent = 'Ukuran maks 5MB.';
+                fileInfoText.classList.remove('font-semibold', 'text-blue-600');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                fileError.textContent = 'Ukuran file melebihi 5MB.';
+                fileError.classList.remove('hidden');
+                fileInput.value = '';
+                fileInfoText.textContent = 'Ukuran maks 5MB.';
+                fileInfoText.classList.remove('font-semibold', 'text-blue-600');
+                return;
+            }
+
+            // Valid file
+            const sizeKB = (file.size / 1024).toFixed(1);
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            const displaySize = file.size > 1024 * 1024 ? `${sizeMB} MB` : `${sizeKB} KB`;
+            
+            fileInfoText.textContent = `${file.name} (${displaySize})`;
+            fileInfoText.classList.add('font-semibold', 'text-blue-600');
+        }
+
+        // Submit via FastAPI
+        submitForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const file = fileInput.files[0];
+            const title = titleInput.value.trim();
+            const desc = descInput.value.trim();
+
+            if (!file) {
+                fileError.textContent = 'Silakan pilih PDF terlebih dahulu.';
+                fileError.classList.remove('hidden');
+                return;
+            }
+
+            modalError.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Mengirim...';
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            lucide.createIcons();
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('title', title);
+            formData.append('description', desc);
+
+            try {
+                const res = await fetch('http://localhost:8000/api/submit', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + pb.authStore.token },
+                    body: formData
+                });
+                
+                const data = await res.json();
+
+                if (res.status === 200) {
+                    localStorage.setItem('last_submit_time', String(Date.now()));
+                    closeModal();
+                    showToast('Naskah dikumpulkan! Score: ' + data.score, 'success');
+                    updateFabCooldown();
+                    if (!cooldownInterval) cooldownInterval = setInterval(updateFabCooldown, 1000);
+                } else if (res.status === 429) {
+                    closeModal();
+                    startCooldown(data.retry_after_seconds);
+                } else if (res.status === 401) {
+                    logout();
+                } else {
+                    showErrorInModal(data.message || 'Terjadi kesalahan sistem.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Kirim';
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            } catch (error) {
+                showToast('Server tidak bisa dihubungi. Pastikan backend sudah dijalankan.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Kirim';
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+
+        // Utilities
+        function escapeHtml(unsafe) {
+            if (!unsafe) return "";
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
