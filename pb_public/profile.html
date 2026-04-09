@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Profil - NaskahSiswa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
+  <script src="/app.js"></script>
+  <script>
+    if (!pb.authStore.isValid) {
+      sessionStorage.setItem('redirect_message', 'Sesi berakhir, silakan login kembali.')
+      window.location.href = '/index.html'
+    }
+  </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- HEADER -->
+  <header class="bg-white shadow sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="font-bold text-xl text-blue-600">NaskahSiswa</div>
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-gray-700" id="header-name"></span>
+        <button onclick="logout()" class="text-sm text-red-600 hover:text-red-700 font-medium">Keluar</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Profil Header -->
+    <div class="bg-white rounded-xl shadow p-6 mb-8 flex items-center gap-6">
+      <div id="avatar" class="w-12 h-12 rounded-full flex items-center justify-center text-white font-medium text-lg"></div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900" id="profile-name"></h1>
+        <p class="text-gray-500 text-sm" id="profile-stats">Memuat statistik...</p>
+      </div>
+      <div class="ml-auto">
+        <a href="/dashboard.html" class="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Riwayat -->
+    <h2 class="text-xl font-bold text-gray-900 mb-4">Riwayat Submission</h2>
+    <div id="history-container" class="space-y-4">
+      <p class="text-gray-500">Memuat riwayat...</p>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = pb.authStore.model;
+      const name = user.name || 'User';
+      document.getElementById('header-name').textContent = name;
+      document.getElementById('profile-name').textContent = name;
+      
+      const avatar = document.getElementById('avatar');
+      avatar.style.backgroundColor = getAvatarColor(name);
+      avatar.textContent = getInitials(name);
+      
+      try {
+        // Fetch specific submissions for this user to pass the PocketBase API List Rule checks
+        const records = await pb.collection('submissions').getFullList({
+          filter: `user_id = "${user.id}"`
+        });
+        records.sort((a, b) => new Date(b.created) - new Date(a.created));
+        
+        let terbaikId = null;
+        let maxScore = -1;
+        let processedCount = 0;
+        
+        records.forEach(r => {
+          if (r.status === 'processed') {
+            processedCount++;
+            if (r.score > maxScore) {
+              maxScore = r.score;
+              terbaikId = r.id;
+            }
+          }
+        });
+        
+        document.getElementById('profile-stats').textContent = `${records.length} total naskah, ${processedCount} diterima.`;
+        
+        const container = document.getElementById('history-container');
+        if (records.length === 0) {
+          container.innerHTML = '<div class="bg-white p-6 rounded-xl shadow text-center text-gray-500">Belum ada riwayat submission.</div>';
+        } else {
+          container.innerHTML = '';
+          records.forEach(record => {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-xl shadow p-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between';
+            
+            let statusBadge = '';
+            if (record.status === 'processed') {
+              statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full bg-[#dcfce7] text-[#15803d]">Diterima</span>';
+            } else if (record.status === 'rejected') {
+              statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full bg-[#fee2e2] text-[#dc2626]">Ditolak</span>';
+            }
+
+            const isTerbaik = record.id === terbaikId;
+            const badgeTerbaik = isTerbaik ? '<span class="px-2 py-0.5 text-[12px] rounded-full bg-yellow-100 text-yellow-800 ml-2 font-medium">✨ Terbaik</span>' : '';
+
+            card.innerHTML = `
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="font-bold text-gray-900 text-lg">${record.title}</h3>
+                  ${statusBadge} ${badgeTerbaik}
+                </div>
+                <div class="text-sm text-gray-500 mb-2">${formatDate(record.created)}</div>
+                <div class="flex gap-4 text-sm">
+                  <span class="flex items-center gap-1 text-gray-600"><i data-lucide="file-text" class="w-4 h-4"></i> ${record.word_count} kata</span>
+                  <span class="flex items-center gap-1 text-gray-600"><i data-lucide="award" class="w-4 h-4"></i> Score: ${record.score}</span>
+                </div>
+              </div>
+              <div>
+                <button onclick="downloadPdf('${record.id}')" class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium transition">
+                  <i data-lucide="download" class="w-4 h-4"></i> Unduh PDF
+                </button>
+              </div>
+            `;
+            container.appendChild(card);
+          });
+          lucide.createIcons();
+        }
+      } catch (e) {
+        console.error("Fetch error:", e);
+        document.getElementById('history-container').innerHTML = `<div class="bg-red-50 p-6 rounded-xl text-red-600"><strong>Gagal memuat riwayat:</strong><br/>${e.message || e}</div>`;
+      }
+      
+      lucide.createIcons();
+    });
+
+    async function downloadPdf(recordId) {
+      try {
+        const record = await pb.collection('submissions').getOne(recordId);
+        const url = pb.files.getUrl(record, record.file);
+        window.open(url, '_blank');
+      } catch (e) {
+        showToast('Gagal mengunduh file.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

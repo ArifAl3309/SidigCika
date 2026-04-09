@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Guru - NaskahSiswa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
+  <script src="/app.js"></script>
+  <script>
+    if (!pb.authStore.isValid) {
+      sessionStorage.setItem('redirect_message', 'Sesi berakhir, silakan login kembali.')
+      window.location.href = '/index.html'
+    } else if (pb.authStore.model?.role !== 'teacher') {
+      window.location.href = '/dashboard.html'
+    }
+  </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- HEADER -->
+  <header class="bg-white shadow sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="font-bold text-xl text-blue-600">NaskahSiswa</div>
+        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Guru</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-gray-700" id="header-name"></span>
+        <button onclick="logout()" class="text-sm text-red-600 hover:text-red-700 font-medium">Keluar</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+    
+    <!-- LEADERBOARD PENUH -->
+    <section>
+      <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><i data-lucide="trophy" class="w-5 h-5 text-amber-500"></i> Leaderboard (Semua Siswa)</h2>
+      <div class="bg-white rounded-xl shadow overflow-hidden">
+        <table class="w-full text-left text-sm text-gray-600">
+          <thead class="bg-gray-50 text-gray-900 uppercase">
+            <tr>
+              <th class="px-6 py-4 font-semibold w-16">#</th>
+              <th class="px-6 py-4 font-semibold">Nama</th>
+              <th class="px-6 py-4 font-semibold">Judul Naskah (Terbaik)</th>
+              <th class="px-6 py-4 font-semibold text-right">Score</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body" class="divide-y divide-gray-100">
+            <tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">Memuat leaderboard...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SEMUA SUBMISSION -->
+    <section>
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2"><i data-lucide="list" class="w-5 h-5 text-blue-500"></i> Semua Submission</h2>
+        <div class="flex bg-gray-100 p-1 rounded-lg">
+          <button onclick="setFilter('all')" id="tab-all" class="px-4 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-gray-900">Semua</button>
+          <button onclick="setFilter('processed')" id="tab-processed" class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900">Diterima</button>
+          <button onclick="setFilter('rejected')" id="tab-rejected" class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900">Ditolak</button>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow overflow-hidden overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-600 min-w-[800px]">
+          <thead class="bg-gray-50 text-gray-900 uppercase">
+            <tr>
+              <th class="px-4 py-3 font-semibold">Nama / Tanggal</th>
+              <th class="px-4 py-3 font-semibold">Judul Naskah</th>
+              <th class="px-4 py-3 font-semibold">Kata</th>
+              <th class="px-4 py-3 font-semibold">Score</th>
+              <th class="px-4 py-3 font-semibold">Status</th>
+              <th class="px-4 py-3 font-semibold text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="submissions-body" class="divide-y divide-gray-100">
+            <tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let allSubmissions = [];
+    let currentFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('header-name').textContent = pb.authStore.model.name || 'Guru';
+      
+      await loadAllData();
+      
+      pb.collection('submissions').subscribe('*', async () => {
+        await loadAllData();
+      });
+
+      window.addEventListener('beforeunload', () => {
+        pb.collection('submissions').unsubscribe('*');
+      });
+    });
+
+    async function fetchAndRenderLeaderboard(records) {
+      try {
+        const map = {};
+        records.forEach(r => {
+          if (r.status !== 'processed') return;
+          const uid = r.user_id;
+          const name = r.expand?.user_id?.name ?? 'Unknown';
+          if (!map[uid] || r.score > map[uid].score) {
+            map[uid] = { name, score: r.score, title: r.title };
+          }
+        });
+
+        const sorted = Object.values(map).sort((a, b) => b.score - a.score);
+        renderLeaderboard(sorted);
+      } catch (e) {
+        document.getElementById('leaderboard-body').innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-red-500">Gagal memuat leaderboard.</td></tr>';
+      }
+    }
+
+    function renderLeaderboard(data) {
+      const tbody = document.getElementById('leaderboard-body');
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">Belum ada submission.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      data.forEach((item, index) => {
+        const rank = index + 1;
+        let bgClass = '';
+        if (rank === 1) bgClass = 'bg-[#fef9c3]';
+        else if (rank === 2) bgClass = 'bg-[#f3f4f6]';
+        else if (rank === 3) bgClass = 'bg-[#fff7ed]';
+
+        let rankHtml = `<span class="font-medium text-gray-500">${rank}</span>`;
+        if (rank === 1) rankHtml = `<span class="inline-flex w-6 h-6 items-center justify-center rounded-full bg-yellow-400 text-white font-bold text-xs">1</span>`;
+        if (rank === 2) rankHtml = `<span class="inline-flex w-6 h-6 items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold text-xs">2</span>`;
+        if (rank === 3) rankHtml = `<span class="inline-flex w-6 h-6 items-center justify-center rounded-full bg-orange-300 text-white font-bold text-xs">3</span>`;
+
+        const tr = document.createElement('tr');
+        if (bgClass) tr.className = bgClass;
+        tr.innerHTML = `
+          <td class="px-6 py-4">${rankHtml}</td>
+          <td class="px-6 py-4 font-semibold text-gray-900">${item.name}</td>
+          <td class="px-6 py-4">${item.title}</td>
+          <td class="px-6 py-4 text-right font-bold text-blue-600">${item.score}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadAllData() {
+      try {
+        const records = await pb.collection('submissions').getFullList({
+          expand: 'user_id'
+        });
+        records.sort((a, b) => new Date(b.created) - new Date(a.created));
+        allSubmissions = records;
+        fetchAndRenderLeaderboard(records);
+        renderSubmissions();
+      } catch (e) {
+        if(typeof showToast === 'function') showToast('Gagal memuat data dari server.', 'error');
+      }
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.getElementById('tab-all').className = getTabClass(filter === 'all');
+      document.getElementById('tab-processed').className = getTabClass(filter === 'processed');
+      document.getElementById('tab-rejected').className = getTabClass(filter === 'rejected');
+      renderSubmissions();
+    }
+
+    function getTabClass(isActive) {
+      return isActive 
+        ? "px-4 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-gray-900 transition" 
+        : "px-4 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 transition";
+    }
+
+    function renderSubmissions() {
+      const tbody = document.getElementById('submissions-body');
+      
+      const filtered = allSubmissions.filter(r => currentFilter === 'all' || r.status === currentFilter);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Tidak ada data.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      filtered.forEach(record => {
+        const name = record.expand?.user_id?.name || 'Unknown';
+        
+        let statusBadge = '';
+        if (record.status === 'processed') {
+          statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full bg-[#dcfce7] text-[#15803d]">Diterima</span>';
+        } else if (record.status === 'rejected') {
+          statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full bg-[#fee2e2] text-[#dc2626]">Ditolak</span>';
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50';
+        tr.innerHTML = `
+          <td class="px-4 py-3">
+            <div class="font-medium text-gray-900">${name}</div>
+            <div class="text-xs text-gray-500">${formatDate(record.created)}</div>
+          </td>
+          <td class="px-4 py-3 font-medium">${record.title}</td>
+          <td class="px-4 py-3">${record.word_count}</td>
+          <td class="px-4 py-3 font-bold text-gray-900">${record.score}</td>
+          <td class="px-4 py-3">${statusBadge}</td>
+          <td class="px-4 py-3 text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button onclick="downloadPdf('${record.id}')" title="Unduh PDF" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded">
+                <i data-lucide="download" class="w-4 h-4"></i>
+              </button>
+              <button onclick="deleteSubmission('${record.id}')" title="Hapus" class="p-1.5 text-red-600 hover:bg-red-50 rounded">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    async function downloadPdf(recordId) {
+      try {
+        const record = allSubmissions.find(r => r.id === recordId) || await pb.collection('submissions').getOne(recordId);
+        const url = pb.files.getUrl(record, record.file);
+        window.open(url, '_blank');
+      } catch (e) {
+        if(typeof showToast === 'function') showToast('Gagal mengunduh file.', 'error');
+      }
+    }
+
+    async function deleteSubmission(recordId) {
+      if (confirm('Yakin hapus submission ini?')) {
+        try {
+          await pb.collection('submissions').delete(recordId);
+          // Tabel update otomatis via real-time subscription
+          if(typeof showToast === 'function') showToast('Naskah berhasil dihapus.', 'success');
+        } catch (e) {
+          if(typeof showToast === 'function') showToast('Gagal menghapus. Coba lagi.', 'error');
+        }
+      }
+    }
+  </script>
+</body>
+</html>

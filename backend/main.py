@@ -170,15 +170,16 @@ async def submit(
                 headers={"Authorization": f"Bearer {admin_token}"},
                 params={
                     "filter": f'(user_id="{user_id}")',
-                    "sort": "-created",
-                    "perPage": 1,
+                    "perPage": 50,
                     "page": 1,
                 },
                 timeout=10.0,
             )
         data = r.json()
-        if data.get("totalItems", 0) > 0:
-            last_str = data["items"][0]["created"]
+        items = data.get("items", [])
+        if items:
+            items.sort(key=lambda x: x.get("created", ""), reverse=True)
+            last_str = items[0]["created"]
             # Format ISO PocketBase: "2024-01-15 14:30:00.000Z"
             last_dt = datetime.fromisoformat(last_str.replace("Z", "+00:00"))
             selisih = (datetime.now(timezone.utc) - last_dt).total_seconds()
