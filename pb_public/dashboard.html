@@ -24,6 +24,9 @@
         <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
             <h1 class="text-xl font-bold text-gray-800">NAMA APLIKASI</h1>
             <nav class="flex items-center gap-4">
+                <a href="/pameran.html" class="text-gray-600 hover:text-gray-900 font-medium text-sm flex items-center gap-1">
+                    <i data-lucide="image" class="w-4 h-4"></i> Pameran
+                </a>
                 <a href="/profile.html" class="text-gray-600 hover:text-gray-900 font-medium text-sm flex items-center gap-1">
                     <i data-lucide="user" class="w-4 h-4"></i> Profil
                 </a>
@@ -51,9 +54,9 @@
                     <thead class="bg-gray-100 border-b border-gray-200">
                         <tr>
                             <th class="py-3 px-4 text-sm font-semibold text-gray-600 w-16">#</th>
-                            <th class="py-3 px-4 text-sm font-semibold text-gray-600">Nama</th>
-                            <th class="py-3 px-4 text-sm font-semibold text-gray-600">Judul Naskah</th>
-                            <th class="py-3 px-4 text-sm font-semibold text-gray-600 w-32">Score</th>
+                            <th class="py-3 px-4 text-sm font-semibold text-gray-600">Kelas</th>
+                            <th class="py-3 px-4 text-sm font-semibold text-gray-600 w-36">Total Poin</th>
+                            <th class="py-3 px-4 text-sm font-semibold text-gray-600 w-36">Jumlah Karya</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboard-body" class="divide-y divide-gray-100">
@@ -156,32 +159,32 @@
 
             if (data.length === 0) {
                 const tr = document.createElement('tr');
-                tr.innerHTML = '<td colspan="4" class="py-8 text-center text-gray-500">Belum ada submission.</td>';
+                tr.innerHTML = '<td colspan="4" class="py-8 text-center text-gray-500">Belum ada karya yang di-ACC.</td>';
                 tableBody.appendChild(tr);
                 return;
             }
 
-            const currentUserId = pb.authStore.model?.id;
+            const currentKelas = pb.authStore.model?.Kelas;
 
             data.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 tr.className = 'transition hover:bg-gray-50/50';
-                
+
                 // Styling warna berdasarkan rank
                 if (index === 0) tr.style.backgroundColor = '#fef9c3';
                 else if (index === 1) tr.style.backgroundColor = '#f3f4f6';
                 else if (index === 2) tr.style.backgroundColor = '#fff7ed';
 
-                // Indikator jika milik user
-                if (item.userId === currentUserId) {
+                // Highlight jika kelas baris == kelas user login
+                if (currentKelas && item.Kelas === currentKelas) {
                     tr.style.borderLeft = '3px solid #3b82f6';
                 }
 
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-mono font-medium text-gray-500">${index + 1}</td>
-                    <td class="py-3 px-4 font-medium text-gray-800">${escapeHtml(item.name)}</td>
-                    <td class="py-3 px-4 text-gray-600 truncate max-w-sm">${escapeHtml(item.title)}</td>
-                    <td class="py-3 px-4 font-bold text-blue-600">${item.score}</td>
+                    <td class="py-3 px-4 font-medium text-gray-800">${escapeHtml(item.Kelas)}</td>
+                    <td class="py-3 px-4 font-bold text-blue-600">${item.totalScore}</td>
+                    <td class="py-3 px-4 text-gray-600">${item.jumlahKarya}</td>
                 `;
                 tableBody.appendChild(tr);
             });
@@ -190,28 +193,31 @@
         async function fetchAndRenderLeaderboard() {
             try {
                 const records = await pb.collection('submissions').getFullList({
-                    filter: 'status = "processed"',
+                    filter: 'status = "accepted"',
                     expand: 'user_id',
-                    fields: 'id,user_id,title,score,expand.user_id.name'
+                    fields: 'id,user_id,score,expand.user_id.name,expand.user_id.Kelas'
                 });
 
-                const map = {};
+                // Hitung TOTAL score per kelas di JS
+                const kelasMap = {};
                 records.forEach(r => {
-                    const uid = r.user_id;
-                    const name = r.expand?.user_id?.name ?? 'Unknown';
-                    if (!map[uid] || r.score > map[uid].score) {
-                        map[uid] = { userId: uid, name, score: r.score, title: r.title };
+                    const kelas = r.expand?.user_id?.Kelas ?? 'Tidak Diketahui';
+                    if (!kelasMap[kelas]) {
+                        kelasMap[kelas] = { Kelas: kelas, totalScore: 0, jumlahKarya: 0 };
                     }
+                    kelasMap[kelas].totalScore  += r.score;
+                    kelasMap[kelas].jumlahKarya += 1;
                 });
 
-                const sorted = Object.values(map).sort((a, b) => b.score - a.score);
+                const sorted = Object.values(kelasMap)
+                                     .sort((a, b) => b.totalScore - a.totalScore);
 
                 const isTeacher = pb.authStore.model?.role === 'teacher';
                 const displayed = isTeacher ? sorted : sorted.slice(0, 10);
 
                 renderLeaderboard(displayed);
             } catch (error) {
-                console.error("Fetch error:", error);
+                console.error('Fetch error:', error);
                 tableContainer.classList.add('hidden');
                 tableError.classList.remove('hidden');
                 tableError.innerHTML = `<p class="mb-4 text-red-500 font-medium">Gagal memuat data:<br/>${error.message}</p><button onclick="fetchAndRenderLeaderboard()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">Coba Lagi</button>`;
@@ -260,7 +266,7 @@
             const lastSubmit = localStorage.getItem('last_submit_time');
             if (!lastSubmit) { setFabNormal(); return; }
             
-            const sisa = 300 - Math.floor((Date.now() - Number(lastSubmit)) / 1000);
+            const sisa = 60 - Math.floor((Date.now() - Number(lastSubmit)) / 1000); // cooldown 60 detik
             if (sisa <= 0) { setFabNormal(); return; }
 
             const mm = String(Math.floor(sisa / 60)).padStart(2, '0');
@@ -269,7 +275,7 @@
         }
 
         function startCooldown(seconds) {
-            localStorage.setItem('last_submit_time', String(Date.now() - (300 - seconds) * 1000));
+            localStorage.setItem('last_submit_time', String(Date.now() - (60 - seconds) * 1000)); // cooldown 60 detik
             updateFabCooldown();
             if (!cooldownInterval) {
                 cooldownInterval = setInterval(updateFabCooldown, 1000);
@@ -429,7 +435,8 @@
                 if (res.status === 200) {
                     localStorage.setItem('last_submit_time', String(Date.now()));
                     closeModal();
-                    showToast('Naskah dikumpulkan! Score: ' + data.score, 'success');
+                    // Toast info (biru) — karya masuk antrean, belum tentu di-ACC
+                    showToast('Karya Kamu masuk dalam Antrean ACC, Harap menunggu.', 'info');
                     updateFabCooldown();
                     if (!cooldownInterval) cooldownInterval = setInterval(updateFabCooldown, 1000);
                 } else if (res.status === 429) {

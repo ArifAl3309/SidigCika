@@ -15,6 +15,7 @@ import hashlib
 import os
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
 import fitz  # PyMuPDF
 import httpx
@@ -25,7 +26,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # ─── Konfigurasi ────────────────────────────────────────────────────────────
-load_dotenv()
+# Pastikan .env dibaca dari folder backend/, bukan dari working directory uvicorn
+load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
 PB_URL         = os.getenv("POCKETBASE_URL", "http://localhost:8090")
 ADMIN_EMAIL    = os.getenv("POCKETBASE_ADMIN_EMAIL", "")
@@ -39,7 +41,7 @@ _admin_token_expires: float = 0.0
 async def get_admin_token() -> str:
     """Mengembalikan admin token PocketBase. Auto-refresh jika hampir expired."""
     global _admin_token, _admin_token_expires
-    if _admin_token and time.time() < _admin_token_expires - 300:
+    if _admin_token and time.time() < _admin_token_expires - 60:
         return _admin_token
     async with httpx.AsyncClient() as client:
         r = await client.post(
@@ -58,7 +60,7 @@ app = FastAPI(title="Student Submission API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8090"],
+    allow_origins=["http://localhost:8090", "http://127.0.0.1:8090"],
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
     allow_credentials=True,
@@ -162,7 +164,7 @@ async def submit(
         user_id   = user_data["id"]
         user_role = user_data.get("role", "student")  # noqa: F841
 
-        # ── LANGKAH 2: Cek cooldown (5 menit = 300 detik) ───────────────────
+        # ── LANGKAH 2: Cek cooldown (1 menit = 60 detik) ────────────────────
         admin_token = await get_admin_token()
         async with httpx.AsyncClient() as client:
             r = await client.get(
@@ -170,29 +172,29 @@ async def submit(
                 headers={"Authorization": f"Bearer {admin_token}"},
                 params={
                     "filter": f'(user_id="{user_id}")',
-                    "perPage": 50,
+                    "sort": "-created",
+                    "perPage": 1,
                     "page": 1,
                 },
                 timeout=10.0,
             )
         data = r.json()
-        items = data.get("items", [])
-        if items:
-            items.sort(key=lambda x: x.get("created", ""), reverse=True)
-            last_str = items[0]["created"]
-            # Format ISO PocketBase: "2024-01-15 14:30:00.000Z"
-            last_dt = datetime.fromisoformat(last_str.replace("Z", "+00:00"))
-            selisih = (datetime.now(timezone.utc) - last_dt).total_seconds()
-            if selisih < 300:
-                sisa = int(300 - selisih)
-                return JSONResponse(
-                    status_code=429,
-                    content={
-                        "error": "cooldown",
-                        "message": "Tunggu sebelum submit lagi.",
-                        "retry_after_seconds": sisa,
-                    },
-                )
+        if data.get("totalItems", 0) > 0:
+            last_str = data["items"][0].get("created", "")
+            if last_str:
+                # Format ISO PocketBase: "2024-01-15 14:30:00.000Z"
+                last_dt = datetime.fromisoformat(last_str.replace("Z", "+00:00"))
+                selisih = (datetime.now(timezone.utc) - last_dt).total_seconds()
+                if selisih < 60:
+                    sisa = int(60 - selisih)
+                    return JSONResponse(
+                        status_code=429,
+                        content={
+                            "error": "cooldown",
+                            "message": "Tunggu sebelum submit lagi.",
+                            "retry_after_seconds": sisa,
+                        },
+                    )
 
         # ── LANGKAH 3: Validasi file ─────────────────────────────────────────
         file_bytes = await file.read()
@@ -261,8 +263,8 @@ async def submit(
                 },
             )
 
-        # ── LANGKAH 7: Hitung score ───────────────────────────────────────────
-        score = 100 + (20 if word_count > 500 else 0)
+        # ── LANGKAH 7: Set score = 0 (pending, belum dinilai guru) ─────────
+        score = 0  # Selalu 0 saat create, guru yang update nanti
 
         # ── LANGKAH 8: Simpan ke PocketBase ──────────────────────────────────
         async with httpx.AsyncClient() as client:
@@ -275,15 +277,26 @@ async def submit(
                     "description": description,
                     "file_hash":   file_hash,
                     "word_count":  str(word_count),
-                    "score":       str(score),
-                    "status":      "processed",
+                    # score TIDAK dikirim — PocketBase Go menganggap "0"
+                    # sebagai zero-value (kosong) pada field Number required.
+                    # PocketBase akan otomatis pakai default: 0 dari schema.
+                    "status":      "pending",
                 },
                 files={
                     "file": (file.filename, file_bytes, "application/pdf")
                 },
                 timeout=30.0,
             )
-        r.raise_for_status()
+        print(f"PocketBase response status: {r.status_code}")
+        print(f"PocketBase response body: {r.text}")
+        if r.status_code != 200:
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": "server_error",
+                    "message": "Terjadi kesalahan. Coba lagi.",
+                },
+            )
         record_id = r.json()["id"]
 
         # ── LANGKAH 9: Kembalikan response sukses ─────────────────────────────
@@ -293,9 +306,9 @@ async def submit(
                 "submission_id": record_id,
                 "title":         title,
                 "word_count":    word_count,
-                "score":         score,
+                "message":       "Karya berhasil dikirim dan masuk antrean ACC.",
             },
-        )
+        )  # Tidak ada field "score" di response
 
     # ── LANGKAH 10: Tangani semua exception ──────────────────────────────────
     except httpx.RequestError:

@@ -1,0 +1,1431 @@
+================================================================
+[NAMA APLIKASI] — PRODUCT REQUIREMENTS DOCUMENT (PRD)
+Versi: 3.0 — Revisi (Sistem Penilaian Manual Guru + Pameran + Leaderboard Kelas)
+================================================================
+
+CARA PAKAI DOKUMEN INI:
+  Berikan dokumen ini secara utuh ke code agent di awal sesi.
+  Instruksikan agent untuk MEMBACA SELURUH DOKUMEN terlebih
+  dahulu sebelum menulis satu baris kode pun.
+  Mulai selalu dari: "Baca PRD ini, lalu kerjakan FASE 1 saja."
+
+================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 0 — INSTRUKSI UNTUK CODE AGENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+════════════════════════════════════════════════════════════
+0.1 — BACA INI PERTAMA SEBELUM MELAKUKAN APAPUN
+════════════════════════════════════════════════════════════
+
+Kamu adalah code agent yang bertugas membangun aplikasi ini
+sesuai spesifikasi di dokumen ini. Sebelum menulis kode:
+
+  1. Baca SELURUH dokumen ini dari awal sampai akhir.
+  2. Jangan mulai coding sebelum membaca semua bagian.
+  3. Jika ada yang ambigu atau bertentangan, TANYA dulu —
+     jangan asumsikan sendiri.
+  4. Kerjakan hanya SATU FASE per sesi. Setelah selesai
+     satu fase, BERHENTI dan laporkan hasilnya.
+  5. Jangan menambah fitur yang tidak ada di dokumen ini.
+  6. Jangan mengubah tech stack yang sudah ditentukan.
+
+════════════════════════════════════════════════════════════
+0.2 — URUTAN BUILD (WAJIB DIIKUTI)
+════════════════════════════════════════════════════════════
+
+Build dilakukan dalam 5 fase berurutan. JANGAN loncat fase.
+Setiap fase harus bisa ditest sebelum lanjut ke fase berikutnya.
+
+  FASE 1 — Setup Struktur & Backend Core
+  FASE 2 — Frontend: app.js + index.html (login)
+  FASE 3 — Frontend: dashboard.html + modal submit
+  FASE 4 — Frontend: profile.html + guru.html
+  FASE 5 — Frontend: pameran.html (halaman galeri karya)
+
+Detail setiap fase ada di Bagian 0.3.
+
+════════════════════════════════════════════════════════════
+0.3 — DETAIL SETIAP FASE
+════════════════════════════════════════════════════════════
+
+─────────────────────────────────────────────────────────────
+FASE 1 — Setup Struktur & Backend Core
+─────────────────────────────────────────────────────────────
+
+Tujuan: Backend FastAPI berjalan dan endpoint /api/submit
+        berfungsi penuh. Frontend belum disentuh.
+
+Tugas yang dikerjakan:
+  1. Buat struktur folder persis sesuai Bagian 3
+  2. Buat backend/requirements.txt sesuai Bagian 12
+  3. Buat backend/.env sesuai Bagian 12 (dengan nilai placeholder)
+  4. Buat backend/main.py dengan:
+     a. Konfigurasi CORS sesuai Bagian 7
+     b. Fungsi get_admin_token() sesuai Bagian 7
+     c. Endpoint GET / → return {"status": "ok"}
+     d. Endpoint POST /api/submit dengan urutan proses
+        PERSIS sesuai Bagian 7 (10 langkah, tidak boleh diubah)
+     e. Semua response error sesuai format di Bagian 7
+     f. Semua exception dibungkus try/except
+
+Definisi SELESAI fase ini:
+  - pip install -r requirements.txt berhasil tanpa error
+  - uvicorn main:app --reload --port 8000 berjalan
+  - GET http://localhost:8000/ mengembalikan {"status":"ok"}
+  - Dokumentasi otomatis FastAPI terbuka di localhost:8000/docs
+  - Di /docs, endpoint /api/submit terlihat dengan field
+    yang benar (file, title, description)
+
+Yang TIDAK dikerjakan di fase ini:
+  - Semua file HTML dan CSS
+  - app.js
+  - Test submit sungguhan (karena PocketBase belum di-setup
+    oleh user — itu dilakukan manual oleh user, bukan agent)
+
+Catatan untuk agent:
+  - PocketBase TIDAK dijalankan oleh agent. User yang menjalankan
+    PocketBase secara manual sesuai instruksi di Bagian 12.
+  - Endpoint admin PocketBase yang benar untuk v0.22+:
+    POST /api/collections/_superusers/auth-with-password
+    BUKAN /api/admins/auth-with-password
+  - Fungsi get_admin_token() harus auto-refresh, lihat
+    implementasi referensi di Bagian 7.
+
+─────────────────────────────────────────────────────────────
+FASE 2 — Frontend: app.js + index.html
+─────────────────────────────────────────────────────────────
+
+Tujuan: Halaman login berfungsi. User bisa masuk dengan akun
+        PocketBase dan diredirect ke halaman yang benar.
+
+Prasyarat sebelum mulai:
+  - Fase 1 sudah selesai dan di-test
+  - User sudah setup PocketBase dan buat koleksi sesuai Bagian 5
+  - User sudah buat minimal 1 akun student dan 1 akun teacher
+    via PocketBase admin panel
+
+Tugas yang dikerjakan:
+  1. Buat pb_public/app.js dengan:
+     a. Inisialisasi PocketBase SDK
+     b. Load auth dari localStorage ke SDK
+     c. Fungsi showToast(message, type)
+     d. Fungsi formatDate(isoString) → "15 Jan 2024, 14:30"
+     e. Fungsi getInitials(name) → 2 huruf pertama uppercase
+     f. Fungsi getAvatarColor(name) → hex color dari hash nama
+     g. Fungsi logout() yang menjalankan kode logout di Bagian 8
+  2. Buat pb_public/index.html:
+     a. Load CDN sesuai urutan di Bagian 12
+     b. Layout dan UI sesuai Bagian 10 (HALAMAN LOGIN)
+     c. Logika login sesuai Bagian 8 (LOGIN)
+     d. Tampilkan redirect_message dari sessionStorage jika ada
+     e. Redirect otomatis jika sudah login (cek isValid)
+  3. Buat pb_public/style.css (kosong dulu, isi jika Tailwind
+     CDN tidak mencukupi untuk styling tertentu)
+
+Definisi SELESAI fase ini:
+  - Buka http://localhost:8090 → halaman login tampil
+  - Login dengan akun student → redirect ke dashboard.html
+    (halaman belum ada, 404 itu normal di fase ini)
+  - Login dengan akun teacher → redirect ke guru.html
+    (halaman belum ada, 404 itu normal di fase ini)
+  - Login dengan kredensial salah → pesan error tampil
+  - Refresh halaman saat sudah login → redirect otomatis
+    (bukan kembali ke halaman login)
+
+Yang TIDAK dikerjakan di fase ini:
+  - dashboard.html, profile.html, guru.html, pameran.html
+
+─────────────────────────────────────────────────────────────
+FASE 3 — Frontend: dashboard.html + modal submit
+─────────────────────────────────────────────────────────────
+
+Tujuan: Halaman utama berfungsi penuh — leaderboard kelas
+        tampil real-time, submit naskah bekerja end-to-end.
+
+Prasyarat sebelum mulai:
+  - Fase 1 dan Fase 2 sudah selesai dan di-test
+  - Backend FastAPI berjalan di port 8000
+  - PocketBase berjalan di port 8090
+
+Tugas yang dikerjakan:
+  1. Buat pb_public/dashboard.html:
+     a. Load CDN + app.js (urutan sesuai Bagian 12)
+     b. Cek token saat load → tidak valid → index.html
+     c. Header navigasi sesuai Bagian 10
+     d. Tabel leaderboard KELAS sesuai Bagian 10 (LEADERBOARD TABLE)
+     e. Fetch + render leaderboard kelas sesuai kode di Bagian 8
+        (FETCH LEADERBOARD) — hitung total poin per kelas di JS
+     f. Real-time subscription sesuai Bagian 8
+     g. Tombol FAB sesuai Bagian 10 (TOMBOL FAB):
+        - Semua 3 state (normal, cooldown, loading)
+        - Countdown dari localStorage "last_submit_time"
+        - setInterval untuk update countdown tiap detik
+     h. Modal submit sesuai Bagian 10 (MODAL SUBMIT):
+        - Semua field dengan validasi frontend
+        - Counter karakter untuk judul dan deskripsi
+        - File picker kustom (bukan input file default)
+        - Logika kirim ke FastAPI sesuai Bagian 8
+        - Handling semua response (200, 400, 401, 409, 429, 500)
+        - Setelah submit berhasil: tampilkan toast
+          "Karya Kamu masuk dalam Antrean ACC, Harap menunggu."
+          dengan type 'info' (biru)
+     i. Toast notifikasi sesuai Bagian 10
+     j. Link ke halaman pameran.html di navigasi header
+
+Definisi SELESAI fase ini:
+  - Login sebagai student → dashboard tampil dengan leaderboard kelas
+  - Jika belum ada submission → empty state tampil
+  - Upload PDF valid → toast antrean muncul → status "pending"
+  - Upload PDF yang sama kedua kali → error "duplikat" tampil
+  - Upload PDF > 5MB → error tampil sebelum dikirim ke server
+  - Submit saat cooldown aktif → FAB disabled + countdown
+  - Buka browser kedua (tab lain) → saat guru ACC karya,
+    leaderboard kelas ikut update (real-time)
+
+Yang TIDAK dikerjakan di fase ini:
+  - profile.html, guru.html, pameran.html
+
+─────────────────────────────────────────────────────────────
+FASE 4 — Frontend: profile.html + guru.html
+─────────────────────────────────────────────────────────────
+
+Tujuan: Halaman profil siswa dan dashboard guru berfungsi.
+
+Prasyarat sebelum mulai:
+  - Fase 1, 2, 3 sudah selesai dan di-test
+
+Tugas yang dikerjakan:
+  1. Buat pb_public/profile.html:
+     a. Load CDN + app.js
+     b. Cek token saat load → tidak valid → index.html
+     c. Header dengan avatar, nama, kelas, statistik
+     d. Fetch dan tampilkan riwayat submission milik sendiri
+        sesuai Bagian 8 (FETCH RIWAYAT)
+     e. Semua detail card sesuai Bagian 9 (PROFIL & RIWAYAT)
+     f. Avatar inisial dengan warna dari getAvatarColor()
+     g. Badge "Terbaik" pada submission dengan score tertinggi
+        (hanya submission berstatus "accepted")
+     h. Tombol download PDF sesuai Bagian 8 (DOWNLOAD PDF)
+     i. Badge status sesuai Bagian 10 (BADGE STATUS)
+        ("pending" | "accepted" | "rejected")
+
+  2. Buat pb_public/guru.html:
+     a. Load CDN + app.js
+     b. Cek token → tidak valid → index.html
+     c. Cek role → bukan "teacher" → dashboard.html
+     d. Leaderboard kelas penuh (semua kelas, tanpa batas)
+     e. Tabel semua submission sesuai Bagian 9 (DASHBOARD GURU)
+     f. Tombol filter JS-side (Semua/Pending/Accepted/Rejected)
+     g. Tombol ACC (hijau) dan Tolak (merah) per submission
+        yang masih berstatus "pending"
+     h. Tombol hapus dengan confirm() dan delete ke PocketBase
+     i. Real-time subscription (sama seperti dashboard.html)
+     j. Badge "Guru" di header
+
+Definisi SELESAI fase ini (aplikasi dianggap COMPLETE kecuali fase 5):
+  - Login sebagai student → buka profil → riwayat tampil
+    dengan kelas ditampilkan di header profil
+  - Download PDF dari profil → file terbuka di tab baru
+  - Login sebagai teacher → guru.html tampil (bukan redirect)
+  - Teacher bisa lihat semua submission dari semua siswa
+  - Teacher bisa klik tombol ACC → status berubah ke "accepted"
+    → poin 100 ditambahkan ke siswa + kelas → leaderboard update
+  - Teacher bisa klik tombol Tolak → status berubah ke "rejected"
+  - Teacher bisa hapus submission → konfirmasi muncul →
+    setelah hapus, data hilang dari tabel real-time
+  - Filter "Pending" di guru.html hanya tampilkan antrean
+  - Login sebagai student → coba akses guru.html langsung
+    via URL → redirect ke dashboard.html
+
+─────────────────────────────────────────────────────────────
+FASE 5 — Frontend: pameran.html
+─────────────────────────────────────────────────────────────
+
+Tujuan: Halaman pameran publik menampilkan karya yang sudah
+        di-ACC guru, bisa di-scroll dan dibaca seperti IG feed.
+
+Prasyarat sebelum mulai:
+  - Fase 1, 2, 3, 4 sudah selesai dan di-test
+
+Tugas yang dikerjakan:
+  1. Buat pb_public/pameran.html:
+     a. Load CDN + app.js
+     b. Cek token saat load → tidak valid → index.html
+     c. Header navigasi dengan link kembali ke dashboard.html
+     d. Fetch semua submission berstatus "accepted" dari PocketBase
+        sesuai Bagian 8 (FETCH PAMERAN)
+     e. Render sebagai feed card scroll vertikal (1 kolom di mobile,
+        2 kolom di desktop) sesuai Bagian 9 (HALAMAN PAMERAN)
+     f. Setiap card: nama siswa, kelas, judul, deskripsi (preview),
+        tanggal ACC, tombol baca (buka PDF di tab baru)
+     g. Real-time subscription: jika ada karya baru di-ACC,
+        feed otomatis update tanpa refresh
+     h. Empty state jika belum ada karya yang di-ACC
+
+Definisi SELESAI fase ini (aplikasi COMPLETE):
+  - Buka pameran.html → daftar karya yang sudah di-ACC tampil
+  - Klik tombol baca → PDF terbuka di tab baru
+  - Guru ACC karya baru → pameran.html otomatis update (real-time)
+  - Jika belum ada karya di-ACC → empty state tampil
+
+════════════════════════════════════════════════════════════
+0.4 — ATURAN YANG TIDAK BOLEH DILANGGAR
+════════════════════════════════════════════════════════════
+
+TECH STACK — tidak boleh diubah:
+  ✗ Jangan gunakan React, Vue, Angular, Svelte, atau framework
+    JS apapun. Hanya vanilla HTML + CSS + JavaScript.
+  ✗ Jangan gunakan Axios. Hanya Fetch API.
+  ✗ Jangan gunakan library Python selain yang ada di
+    requirements.txt (Bagian 12).
+  ✗ Jangan tambah library CDN selain yang sudah tercantum
+    di Bagian 12.
+  ✗ Jangan buat halaman admin — admin menggunakan PocketBase
+    panel langsung.
+
+SCOPE — tidak boleh ditambah:
+  ✗ Jangan tambah fitur yang tidak ada di dokumen ini.
+  ✗ Jangan tambah endpoint FastAPI baru selain yang ada
+    di Bagian 7.
+  ✗ Jangan tambah field baru ke schema database.
+
+KEAMANAN — wajib diikuti:
+  ✗ Jangan simpan admin token sebagai variabel global statis.
+    Gunakan fungsi get_admin_token() yang auto-refresh.
+  ✗ Jangan expose stack trace Python ke response client.
+  ✗ Jangan hardcode password atau token di kode — gunakan .env.
+  ✗ Cooldown wajib dicek di FastAPI (backend), bukan hanya
+    di frontend.
+
+KODE — standar yang harus diikuti:
+  ✓ Semua response error FastAPI harus JSON dengan field
+    "error" dan "message".
+  ✓ Setiap halaman HTML wajib cek pb.authStore.isValid saat
+    load, sebelum fetch data apapun.
+  ✓ Semua fetch ke FastAPI dibungkus try/catch.
+  ✓ Unsubscribe real-time di window beforeunload.
+  ✓ Jangan tulis file HTML, CSS, atau JS yang berdiri sendiri
+    di luar folder pb_public/.
+
+════════════════════════════════════════════════════════════
+0.5 — CARA MELAPOR SETELAH SELESAI SATU FASE
+════════════════════════════════════════════════════════════
+
+Setelah selesai satu fase, agent harus:
+  1. Sebutkan file apa saja yang dibuat atau diubah
+  2. Sebutkan cara test yang harus dilakukan user
+  3. Sebutkan apa yang belum dikerjakan (fase berikutnya)
+  4. Tanya: "Apakah fase ini sudah di-test dan berjalan?
+     Jika ya, saya akan lanjut ke fase berikutnya."
+  5. BERHENTI dan tunggu konfirmasi dari user sebelum lanjut
+
+════════════════════════════════════════════════════════════
+0.6 — JIKA MENEMUKAN AMBIGUITAS
+════════════════════════════════════════════════════════════
+
+Jika ada yang tidak jelas atau tampak bertentangan di dokumen
+ini, JANGAN asumsikan. Tanya dengan format:
+
+  "Saya menemukan ambiguitas di [bagian X]:
+   [jelaskan masalahnya].
+   Pilihan yang mungkin:
+   A) [opsi A]
+   B) [opsi B]
+   Mana yang benar?"
+
+Jangan lanjut coding sampai mendapat jawaban.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 1 — RINGKASAN APLIKASI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Aplikasi web pengumpulan karya tulis siswa dengan penilaian
+manual oleh Guru (Tim Literasi) dan leaderboard kelas real-time.
+Siswa upload PDF → masuk antrean → guru ACC/tolak → jika di-ACC,
+poin 100 diberikan ke siswa dan kelas → leaderboard kelas
+diperbarui di semua layar tanpa refresh → karya tampil di
+halaman pameran (publik, bisa dibaca semua akun student).
+
+Target pengguna : Siswa dan guru sekolah menengah
+Skala awal      : Lokal (localhost), satu leaderboard kelas
+Developer       : Pelajar SMA, familiar Python + HTML/CSS/JS dasar
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 2 — TECH STACK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FRONTEND
+  Bahasa      : Vanilla HTML + CSS + JavaScript (tanpa framework)
+  Styling     : Tailwind CSS via CDN
+  HTTP        : Fetch API (bawaan browser)
+  Real-time   : PocketBase JS SDK v0.22 (WebSocket)
+  Icons       : Lucide via CDN
+  State/Auth  : localStorage
+  Alamat      : http://localhost:8090 (di-serve langsung PocketBase)
+
+BACKEND
+  Framework   : FastAPI (Python 3.11+)
+  PDF Reader  : PyMuPDF (import sebagai fitz)
+  Hash        : hashlib (bawaan Python)
+  HTTP Client : httpx (untuk request dari FastAPI ke PocketBase)
+  Alamat      : http://localhost:8000
+
+DATABASE / AUTH / STORAGE / REAL-TIME
+  Platform    : PocketBase v0.22+ (satu file executable)
+  Alamat      : http://localhost:8090
+  Admin panel : http://localhost:8090/_/
+
+CATATAN VERSI KRITIS:
+  PocketBase v0.22+ mengubah beberapa endpoint API dari versi
+  sebelumnya. Selalu gunakan endpoint yang tercantum di dokumen
+  ini. Jangan gunakan endpoint dari tutorial lama di internet.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 3 — STRUKTUR FOLDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+project/
+├── pocketbase                  ← executable (download dari pocketbase.io)
+├── pb_data/                    ← otomatis dibuat PocketBase, jangan diedit
+├── pb_public/                  ← semua file frontend di sini
+│   ├── index.html              ← halaman login
+│   ├── dashboard.html          ← leaderboard kelas + tombol submit
+│   ├── profile.html            ← riwayat submission siswa
+│   ├── guru.html               ← dashboard guru (ACC/tolak karya)
+│   ├── pameran.html            ← galeri karya yang sudah di-ACC
+│   ├── style.css               ← custom CSS (Tailwind sudah via CDN)
+│   └── app.js                  ← inisialisasi PocketBase SDK & utilitas global
+└── backend/
+    ├── main.py                 ← seluruh logika FastAPI (satu file)
+    ├── requirements.txt
+    └── .env
+
+Cara jalankan:
+  Terminal 1 : ./pocketbase serve --http="localhost:8090"
+  Terminal 2 : cd backend && uvicorn main:app --reload --port 8000
+  Browser    : http://localhost:8090
+
+Catatan: pb_public/ di-serve otomatis oleh PocketBase di
+http://localhost:8090. Tidak perlu web server tambahan untuk
+frontend. File di pb_public/ langsung bisa diakses via browser.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 4 — ROLE PENGGUNA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Disimpan di field "role" pada koleksi users.
+Nilai valid: "student" | "teacher" | "admin"
+
+STUDENT
+  - Login / logout
+  - Lihat leaderboard kelas (top 10 kelas teratas)
+  - Submit naskah PDF (cooldown 1 menit antar submit)
+  - Lihat & download PDF submission milik sendiri
+  - Lihat halaman pameran (karya yang sudah di-ACC)
+  - Akses halaman: index.html, dashboard.html, profile.html,
+    pameran.html
+
+TEACHER (Tim Literasi)
+  Semua akses student, ditambah:
+  - Lihat leaderboard kelas penuh (semua kelas, tidak dibatasi)
+  - Lihat & download PDF semua submission
+  - ACC karya siswa (status: pending → accepted, poin diberikan)
+  - Tolak karya siswa (status: pending → rejected)
+  - Hapus submission yang melanggar aturan
+  - Akses halaman: semua halaman student + guru.html
+
+ADMIN
+  Gunakan PocketBase admin panel (http://localhost:8090/_/).
+  Tidak ada halaman khusus di aplikasi.
+  Kelola akun, role, dan semua data via panel tersebut.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 5 — DATABASE SCHEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+────────────────────────────────────────────────────────────
+KOLEKSI: users (tipe: Auth)
+  Field bawaan PocketBase (tidak perlu dibuat manual):
+    id, email, password, verified, created, updated
+
+  Field tambahan yang harus dibuat:
+    name  : Plain Text, required
+    role  : Plain Text, required, default value: "student"
+    kelas : Plain Text, required
+            (contoh nilai: "X IPA 1", "XI IPS 2", "XII IPA 3")
+
+  API Rules (isi di kolom filter PocketBase admin panel):
+    List rule   : @request.auth.id != "" &&
+                  (@request.auth.role = "teacher" ||
+                   @request.auth.role = "admin")
+    View rule   : @request.auth.id = id ||
+                  @request.auth.role = "teacher" ||
+                  @request.auth.role = "admin"
+    Create rule : (kosong — siapapun bisa registrasi)
+    Update rule : @request.auth.id = id
+    Delete rule : @request.auth.role = "admin"
+
+  Catatan penting:
+    Field "kelas" diisi oleh admin saat membuat akun siswa.
+    Kelas dipakai untuk mengelompokkan poin di leaderboard kelas.
+
+────────────────────────────────────────────────────────────
+KOLEKSI: submissions (tipe: Base)
+
+  Field (buat semua ini di admin panel):
+    user_id     : Relation, koleksi: users, required
+    title       : Plain Text, required, Max length: 150
+    description : Plain Text, optional, Max length: 500
+    file        : File, required, Max size: 5MB,
+                  MIME types allowed: application/pdf
+    file_hash   : Plain Text, required
+    word_count  : Number, required, Min: 0
+    score       : Number, required, Min: 0, default: 0
+    status      : Plain Text, required
+                  (nilai valid: "pending" | "accepted" | "rejected"
+                   FastAPI selalu kirim "pending" saat create)
+    created     : Auto datetime (bawaan PocketBase)
+    updated     : Auto datetime (bawaan PocketBase)
+
+  API Rules:
+    List rule   : @request.auth.id != "" &&
+                  (@request.auth.id = user_id ||
+                   @request.auth.role = "teacher" ||
+                   @request.auth.role = "admin")
+    View rule   : @request.auth.id = user_id ||
+                  @request.auth.role = "teacher" ||
+                  @request.auth.role = "admin"
+    Create rule : (kosong) — dikontrol di level FastAPI dengan
+                  admin token. Frontend tidak punya admin token
+                  sehingga secara praktis hanya FastAPI yang bisa.
+    Update rule : @request.auth.role = "teacher" ||
+                  @request.auth.role = "admin"
+                  (guru butuh update status saat ACC/tolak)
+    Delete rule : @request.auth.role = "teacher" ||
+                  @request.auth.role = "admin"
+
+  Index yang harus dibuat di admin panel:
+    - file_hash : Unique index
+    - user_id   : Non-unique index
+    - status    : Non-unique index
+
+  Catatan multi-submit:
+    Siswa boleh submit lebih dari satu kali dengan file berbeda.
+    Leaderboard kelas menggunakan TOTAL poin dari semua karya
+    berstatus "accepted" per kelas.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 6 — SCORING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Sistem penilaian MANUAL oleh Guru (Tim Literasi).
+Sistem TIDAK menghitung score otomatis berdasarkan kata.
+
+Aturan poin:
+  - Setiap karya yang di-ACC guru → score = 100 (tetap, flat)
+  - Karya yang masih "pending" → score = 0 (belum dinilai)
+  - Karya yang "rejected" → score = 0 (ditolak)
+
+Cara hitung word_count di Python (tetap diproses, untuk info saja):
+  import fitz  # PyMuPDF
+  doc = fitz.open(stream=file_bytes, filetype="pdf")
+  text = " ".join(page.get_text() for page in doc)
+  word_count = len(text.split())
+  if word_count == 0:
+      raise ValueError("empty_pdf")
+
+  word_count disimpan ke database sebagai informasi tambahan
+  yang ditampilkan di halaman profil dan dashboard guru.
+  word_count TIDAK mempengaruhi score.
+
+Alur penilaian:
+  1. Siswa submit → FastAPI simpan ke PocketBase:
+       status = "pending", score = 0
+  2. Guru buka guru.html → lihat daftar karya "pending"
+  3. Guru klik ACC:
+       Frontend update record via PocketBase SDK:
+         status = "accepted", score = 100
+  4. Guru klik Tolak:
+       Frontend update record via PocketBase SDK:
+         status = "rejected", score = 0
+
+  PENTING: Update status ACC/Tolak dilakukan langsung dari
+  frontend (guru.html) menggunakan PocketBase JS SDK dengan
+  token guru yang sedang login. Tidak lewat FastAPI.
+  Ini bisa dilakukan karena Update rule submissions
+  mengizinkan role "teacher".
+
+Leaderboard kelas:
+  - Hitung total score (sum) per kelas dari submissions
+    berstatus "accepted"
+  - Kelas diambil dari field "kelas" di koleksi users
+  - Expand user_id untuk mendapatkan field "kelas"
+  - Perhitungan dilakukan di JavaScript (sisi frontend)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 7 — API ENDPOINT FASTAPI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Base URL FastAPI    : http://localhost:8000
+Base URL PocketBase : http://localhost:8090
+
+Auth header untuk endpoint FastAPI yang butuh login:
+  Authorization: Bearer {pb_token}
+
+CORS FastAPI (wajib dikonfigurasi di main.py):
+  allow_origins     : ["http://localhost:8090"]
+  allow_methods     : ["GET", "POST", "OPTIONS"]
+  allow_headers     : ["Content-Type", "Authorization"]
+  allow_credentials : True
+
+────────────────────────────────────────────────────────────
+CARA DAPAT DAN KELOLA ADMIN TOKEN DI FASTAPI
+
+Admin token dipakai FastAPI untuk operasi privileged ke
+PocketBase (buat record submissions, query semua data).
+
+Endpoint PocketBase v0.22+ untuk admin auth:
+  POST {PB_URL}/api/collections/_superusers/auth-with-password
+  Body JSON: { "identity": ADMIN_EMAIL, "password": ADMIN_PASSWORD }
+  Ambil: response.json()["token"]
+
+  PENTING: BUKAN /api/admins/auth-with-password
+  Endpoint itu sudah deprecated di v0.22+.
+
+Implementasi get_admin_token() yang wajib dipakai:
+
+  import httpx, os, time
+  from dotenv import load_dotenv
+  load_dotenv()
+
+  PB_URL        = os.getenv("POCKETBASE_URL")
+  ADMIN_EMAIL   = os.getenv("POCKETBASE_ADMIN_EMAIL")
+  ADMIN_PASSWORD= os.getenv("POCKETBASE_ADMIN_PASSWORD")
+
+  _admin_token         = None
+  _admin_token_expires = 0.0
+
+  async def get_admin_token() -> str:
+      global _admin_token, _admin_token_expires
+      if _admin_token and time.time() < _admin_token_expires - 300:
+          return _admin_token
+      async with httpx.AsyncClient() as client:
+          r = await client.post(
+              f"{PB_URL}/api/collections/_superusers/auth-with-password",
+              json={"identity": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+              timeout=10.0
+          )
+          r.raise_for_status()
+          _admin_token = r.json()["token"]
+          _admin_token_expires = time.time() + 86400
+          return _admin_token
+
+────────────────────────────────────────────────────────────
+GET /
+  Auth     : Tidak perlu
+  Response : { "status": "ok" }
+
+────────────────────────────────────────────────────────────
+POST /api/submit
+  Auth         : Required (Bearer token)
+  Content-Type : multipart/form-data
+  Body fields:
+    file        : UploadFile, required
+    title       : str = Form(...), required, max 150 karakter
+    description : str = Form(""), optional, max 500 karakter
+
+  Urutan proses (WAJIB berurutan, jangan diubah):
+
+  1. VERIFIKASI TOKEN USER:
+       async with httpx.AsyncClient() as client:
+           r = await client.get(
+               f"{PB_URL}/api/collections/users/auth-refresh",
+               headers={"Authorization": f"Bearer {token}"},
+               timeout=10.0
+           )
+       Jika r.status_code != 200:
+           return JSONResponse(401, {"error":"unauthorized",
+             "message":"Token tidak valid atau sudah expired."})
+       user_id   = r.json()["record"]["id"]
+       user_role = r.json()["record"]["role"]
+
+  2. CEK COOLDOWN (1 menit = 60 detik):
+       admin_token = await get_admin_token()
+       async with httpx.AsyncClient() as client:
+           r = await client.get(
+               f"{PB_URL}/api/collections/submissions/records",
+               headers={"Authorization": f"Bearer {admin_token}"},
+               params={"filter": f'(user_id="{user_id}")',
+                       "sort": "-created", "perPage": 1, "page": 1},
+               timeout=10.0
+           )
+       data = r.json()
+       if data["totalItems"] > 0:
+           last_str = data["items"][0]["created"]
+           # Format ISO PocketBase: "2024-01-15 14:30:00.000Z"
+           from datetime import datetime, timezone
+           last_dt = datetime.fromisoformat(
+               last_str.replace("Z", "+00:00")
+           )
+           selisih = (datetime.now(timezone.utc) - last_dt
+                      ).total_seconds()
+           if selisih < 60:
+               sisa = int(60 - selisih)
+               return JSONResponse(429, {"error":"cooldown",
+                 "message":"Tunggu sebelum submit lagi.",
+                 "retry_after_seconds": sisa})
+
+  3. VALIDASI FILE:
+       file_bytes = await file.read()
+       if len(file_bytes) > 5 * 1024 * 1024:
+           return JSONResponse(400, {"error":"file_too_large",
+             "message":"Ukuran file maksimal 5MB."})
+       if file.content_type != "application/pdf":
+           return JSONResponse(400, {"error":"invalid_pdf",
+             "message":"File harus berformat PDF."})
+       await file.seek(0)
+
+  4. HITUNG HASH:
+       import hashlib
+       file_hash = hashlib.sha256(file_bytes).hexdigest()
+
+  5. CEK DUPLIKAT:
+       async with httpx.AsyncClient() as client:
+           r = await client.get(
+               f"{PB_URL}/api/collections/submissions/records",
+               headers={"Authorization": f"Bearer {admin_token}"},
+               params={"filter": f'(file_hash="{file_hash}")'},
+               timeout=10.0
+           )
+       if r.json()["totalItems"] > 0:
+           return JSONResponse(409, {"error":"duplicate_file",
+             "message":"File ini sudah pernah dikumpulkan."})
+
+  6. HITUNG WORD COUNT (untuk info saja, tidak mempengaruhi score):
+       Jika word_count == 0:
+           return JSONResponse(400, {"error":"empty_pdf",
+             "message":"PDF tidak mengandung teks yang bisa dibaca."})
+
+  7. SET SCORE = 0 (pending, belum dinilai guru):
+       score = 0
+
+  8. SIMPAN KE POCKETBASE:
+       async with httpx.AsyncClient() as client:
+           r = await client.post(
+               f"{PB_URL}/api/collections/submissions/records",
+               headers={"Authorization": f"Bearer {admin_token}"},
+               data={
+                   "user_id":     user_id,
+                   "title":       title,
+                   "description": description,
+                   "file_hash":   file_hash,
+                   "word_count":  str(word_count),
+                   "score":       "0",
+                   "status":      "pending"
+               },
+               files={"file": (file.filename, file_bytes,
+                                "application/pdf")},
+               timeout=30.0
+           )
+       r.raise_for_status()
+       record_id = r.json()["id"]
+
+  9. RETURN 200:
+       return JSONResponse(200, {
+           "submission_id": record_id,
+           "title":         title,
+           "word_count":    word_count,
+           "message":       "Karya berhasil dikirim dan masuk antrean ACC."
+       })
+
+  10. SEMUA LANGKAH DIBUNGKUS try/except:
+       except httpx.RequestError:
+           return JSONResponse(500, {"error":"server_error",
+             "message":"Terjadi kesalahan. Coba lagi."})
+       except Exception as e:
+           return JSONResponse(500, {"error":"server_error",
+             "message":"Terjadi kesalahan. Coba lagi."})
+
+  Response errors lengkap:
+    400 : { "error": "invalid_pdf",
+            "message": "File harus berformat PDF." }
+    400 : { "error": "file_too_large",
+            "message": "Ukuran file maksimal 5MB." }
+    400 : { "error": "empty_pdf",
+            "message": "PDF tidak mengandung teks yang bisa dibaca." }
+    401 : { "error": "unauthorized",
+            "message": "Token tidak valid atau sudah expired." }
+    409 : { "error": "duplicate_file",
+            "message": "File ini sudah pernah dikumpulkan." }
+    422 : { "error": "validation_error",
+            "message": "Judul wajib diisi." }
+    429 : { "error": "cooldown",
+            "message": "Tunggu sebelum submit lagi.",
+            "retry_after_seconds": 45 }
+    500 : { "error": "server_error",
+            "message": "Terjadi kesalahan. Coba lagi." }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 8 — POCKETBASE SDK: KODE REFERENSI FRONTEND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Semua request dari frontend ke PocketBase menggunakan
+PocketBase JS SDK. Jangan pakai fetch langsung ke PocketBase.
+
+────────────────────────────────────────────────────────────
+INISIALISASI SDK (app.js — diload di semua halaman)
+
+  const pb = new PocketBase('http://localhost:8090')
+
+  // Load auth dari localStorage ke SDK
+  const savedToken = localStorage.getItem('pb_token')
+  const savedUser  = localStorage.getItem('pb_user')
+  if (savedToken && savedUser) {
+    pb.authStore.save(savedToken, JSON.parse(savedUser))
+  }
+
+  // Utilitas global
+  function showToast(message, type = 'info') {
+    // type: 'success' | 'error' | 'info'
+    // Buat elemen toast, append ke body, auto-remove 4 detik
+    // Posisi: fixed top-center, z-index 9999
+    // Animasi slide-down masuk, fade-out keluar
+  }
+
+  function formatDate(isoString) {
+    // Input: "2024-01-15 14:30:00.000Z"
+    // Output: "15 Jan 2024, 14:30"
+    const d = new Date(isoString)
+    return d.toLocaleDateString('id-ID', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    }) + ', ' + d.toLocaleTimeString('id-ID', {
+      hour: '2-digit', minute: '2-digit'
+    })
+  }
+
+  function getInitials(name) {
+    if (!name) return '??'
+    return name.trim().substring(0, 2).toUpperCase()
+  }
+
+  function getAvatarColor(name) {
+    const colors = ['#6366f1','#0ea5e9','#8b5cf6','#f59e0b','#14b8a6']
+    const idx = (name || '').split('')
+      .reduce((a, c) => a + c.charCodeAt(0), 0)
+    return colors[idx % colors.length]
+  }
+
+  function logout() {
+    pb.collection('submissions').unsubscribe('*')
+    pb.authStore.clear()
+    localStorage.removeItem('pb_token')
+    localStorage.removeItem('pb_user')
+    localStorage.removeItem('last_submit_time')
+    window.location.href = '/index.html'
+  }
+
+────────────────────────────────────────────────────────────
+CEK TOKEN (jalankan di setiap halaman saat load)
+
+  // Letakkan di awal script setiap halaman (setelah app.js)
+  if (!pb.authStore.isValid) {
+    sessionStorage.setItem('redirect_message',
+      'Sesi berakhir, silakan login kembali.')
+    window.location.href = '/index.html'
+  }
+
+  // Khusus guru.html — tambahkan juga cek role:
+  if (pb.authStore.model?.role !== 'teacher') {
+    window.location.href = '/dashboard.html'
+  }
+
+────────────────────────────────────────────────────────────
+LOGIN (index.html)
+
+  // Tampilkan redirect_message jika ada
+  const msg = sessionStorage.getItem('redirect_message')
+  if (msg) {
+    showToast(msg, 'info')
+    sessionStorage.removeItem('redirect_message')
+  }
+
+  // Auto-redirect jika sudah login
+  if (pb.authStore.isValid) {
+    window.location.href =
+      pb.authStore.model.role === 'teacher'
+        ? '/guru.html' : '/dashboard.html'
+  }
+
+  // Proses login saat form submit:
+  try {
+    await pb.collection('users').authWithPassword(email, password)
+    localStorage.setItem('pb_token', pb.authStore.token)
+    localStorage.setItem('pb_user',
+      JSON.stringify(pb.authStore.model))
+    window.location.href =
+      pb.authStore.model.role === 'teacher'
+        ? '/guru.html' : '/dashboard.html'
+  } catch (e) {
+    // Tampilkan error di bawah tombol (bukan toast)
+    document.getElementById('error-msg').textContent =
+      'Email atau password salah.'
+  }
+
+────────────────────────────────────────────────────────────
+FETCH LEADERBOARD KELAS (dashboard.html & guru.html)
+
+  async function fetchAndRenderLeaderboard() {
+    try {
+      const records = await pb.collection('submissions').getFullList({
+        filter: 'status = "accepted"',
+        expand: 'user_id',
+        fields: 'id,user_id,score,expand.user_id.name,expand.user_id.kelas'
+      })
+
+      // Hitung TOTAL score per kelas di JS
+      const kelasMap = {}
+      records.forEach(r => {
+        const kelas = r.expand?.user_id?.kelas ?? 'Tidak Diketahui'
+        if (!kelasMap[kelas]) {
+          kelasMap[kelas] = { kelas, totalScore: 0, jumlahKarya: 0 }
+        }
+        kelasMap[kelas].totalScore  += r.score
+        kelasMap[kelas].jumlahKarya += 1
+      })
+      const sorted = Object.values(kelasMap)
+                           .sort((a, b) => b.totalScore - a.totalScore)
+
+      // Student: sorted.slice(0, 10)
+      // Teacher: sorted (tanpa slice)
+      const isTeacher = pb.authStore.model?.role === 'teacher'
+      const displayed = isTeacher ? sorted : sorted.slice(0, 10)
+
+      renderLeaderboard(displayed)
+    } catch (e) {
+      // Tampilkan error state di area tabel + tombol Coba Lagi
+    }
+  }
+
+────────────────────────────────────────────────────────────
+REAL-TIME SUBSCRIPTION (dashboard.html, guru.html, pameran.html)
+
+  // Buka setelah fetch pertama selesai
+  await pb.collection('submissions').subscribe('*', async () => {
+    await fetchAndRenderLeaderboard()
+    // pameran.html: panggil fetchAndRenderPameran() juga
+  })
+
+  // Tutup saat pindah halaman
+  window.addEventListener('beforeunload', () => {
+    pb.collection('submissions').unsubscribe('*')
+  })
+
+────────────────────────────────────────────────────────────
+SUBMIT NASKAH (fetch ke FastAPI dari dashboard.html)
+
+  async function submitNaskah(file, title, description) {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('title', title)
+    formData.append('description', description)
+
+    try {
+      const res = await fetch('http://localhost:8000/api/submit', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + pb.authStore.token },
+        body: formData
+      })
+      const data = await res.json()
+
+      if (res.status === 200) {
+        localStorage.setItem('last_submit_time', String(Date.now()))
+        closeModal()
+        // Toast khusus antrean — selalu info (biru), bukan success
+        showToast('Karya Kamu masuk dalam Antrean ACC, Harap menunggu.', 'info')
+        // Leaderboard belum berubah karena karya masih pending
+      } else if (res.status === 429) {
+        closeModal()
+        startCooldown(data.retry_after_seconds)
+      } else if (res.status === 401) {
+        logout()
+      } else {
+        showErrorInModal(data.message)
+      }
+    } catch (e) {
+      showToast('Server tidak bisa dihubungi. Pastikan backend ' +
+                'sudah dijalankan.', 'error')
+    }
+  }
+
+────────────────────────────────────────────────────────────
+COOLDOWN (dashboard.html)
+Cooldown = 60 detik (1 menit)
+
+  function startCooldown(seconds) {
+    localStorage.setItem('last_submit_time',
+      String(Date.now() - (60 - seconds) * 1000))
+    updateFabCooldown()
+  }
+
+  function updateFabCooldown() {
+    const lastSubmit = localStorage.getItem('last_submit_time')
+    if (!lastSubmit) { setFabNormal(); return }
+    const sisa = 60 - Math.floor((Date.now() - Number(lastSubmit)) / 1000)
+    if (sisa <= 0) { setFabNormal(); return }
+
+    const mm = String(Math.floor(sisa / 60)).padStart(2, '0')
+    const ss = String(sisa % 60).padStart(2, '0')
+    setFabCooldown(`${mm}:${ss}`)
+  }
+
+  // Jalankan saat halaman load + update tiap detik
+  updateFabCooldown()
+  const cooldownInterval = setInterval(updateFabCooldown, 1000)
+  window.addEventListener('beforeunload',
+    () => clearInterval(cooldownInterval))
+
+────────────────────────────────────────────────────────────
+FETCH RIWAYAT (profile.html)
+
+  const records = await pb.collection('submissions').getFullList({
+    filter: `user_id = "${pb.authStore.model.id}"`,
+    sort: '-created'
+  })
+
+────────────────────────────────────────────────────────────
+DOWNLOAD PDF
+
+  const url = pb.files.getUrl(record, record.file)
+  window.open(url, '_blank')
+
+────────────────────────────────────────────────────────────
+ACC KARYA (guru.html — update langsung via PocketBase SDK)
+
+  async function accKarya(recordId) {
+    try {
+      await pb.collection('submissions').update(recordId, {
+        status: 'accepted',
+        score:  100
+      })
+      showToast('Karya berhasil di-ACC! Poin diberikan.', 'success')
+      // Tabel dan leaderboard update otomatis via real-time
+    } catch (e) {
+      showToast('Gagal ACC karya. Coba lagi.', 'error')
+    }
+  }
+
+────────────────────────────────────────────────────────────
+TOLAK KARYA (guru.html — update langsung via PocketBase SDK)
+
+  async function tolakKarya(recordId) {
+    if (!confirm('Yakin menolak karya ini?')) return
+    try {
+      await pb.collection('submissions').update(recordId, {
+        status: 'rejected',
+        score:  0
+      })
+      showToast('Karya ditolak.', 'info')
+      // Tabel update otomatis via real-time
+    } catch (e) {
+      showToast('Gagal menolak karya. Coba lagi.', 'error')
+    }
+  }
+
+────────────────────────────────────────────────────────────
+HAPUS SUBMISSION (guru.html)
+
+  if (confirm('Yakin hapus submission ini?')) {
+    try {
+      await pb.collection('submissions').delete(record.id)
+      // Tabel update otomatis via real-time subscription
+    } catch (e) {
+      showToast('Gagal menghapus. Coba lagi.', 'error')
+    }
+  }
+
+────────────────────────────────────────────────────────────
+FETCH PAMERAN (pameran.html)
+
+  async function fetchAndRenderPameran() {
+    try {
+      const records = await pb.collection('submissions').getFullList({
+        filter: 'status = "accepted"',
+        sort: '-updated',
+        expand: 'user_id',
+        fields: 'id,title,description,file,updated,expand.user_id.name,expand.user_id.kelas'
+      })
+      renderPameran(records)
+    } catch (e) {
+      // Tampilkan error state + tombol Coba Lagi
+    }
+  }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 9 — ALUR KERJA APLIKASI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LOGIN (index.html)
+  - Tampilkan redirect_message dari sessionStorage jika ada
+  - Jika pb.authStore.isValid → redirect sesuai role
+  - Form email + password → authWithPassword → simpan token
+  - Redirect: role=teacher → guru.html, lainnya → dashboard.html
+
+DASHBOARD LEADERBOARD KELAS (dashboard.html)
+  - Cek token → tidak valid → simpan pesan → index.html
+  - Fetch submissions berstatus "accepted" + expand user_id
+  - Hitung total score per kelas di JS → render top 10 kelas
+  - Kolom: Rank | Kelas | Total Poin | Jumlah Karya
+  - Rank 1 → background kuning muda
+  - Rank 2 → background abu muda
+  - Rank 3 → background oranye muda
+  - Baris kelas milik user login → border-left 3px biru
+  - Empty state: "Belum ada karya yang di-ACC."
+  - Buka real-time subscription
+  - FAB (+) kanan bawah → buka modal submit
+  - Header: nama app | link Profil | link Pameran | tombol Keluar
+  - Jalankan updateFabCooldown() + setInterval
+
+SUBMIT NASKAH (modal di dashboard.html)
+  - Validasi frontend: pdf, ≤5MB, judul tidak kosong
+  - Cek cooldown dari localStorage → FAB disabled + countdown (1 menit)
+  - Kirim via fetch ke FastAPI (lihat Bagian 8 SUBMIT NASKAH)
+  - Handle semua response sesuai Bagian 8
+  - Saat response 200: tutup modal, tampilkan toast INFO
+    "Karya Kamu masuk dalam Antrean ACC, Harap menunggu."
+  - Leaderboard belum berubah (karya masih pending)
+
+PROFIL & RIWAYAT (profile.html)
+  - Cek token → tidak valid → index.html
+  - Avatar inisial + nama + kelas + statistik di header
+  - List submission milik sendiri, sort -created
+  - Per card: judul, formatDate(created), word_count,
+    badge status (pending/accepted/rejected), tombol download PDF
+  - Badge "Terbaik" hanya pada card "accepted" dengan score
+    tertinggi (jika ada lebih dari 1 karya accepted)
+  - Navigasi: link kembali ke dashboard.html + tombol Keluar
+
+DASHBOARD GURU (guru.html)
+  - Cek token → tidak valid → index.html
+  - Cek role → bukan "teacher" → dashboard.html
+  - Fetch + render leaderboard kelas penuh (sorted tanpa slice)
+  - Tabel semua submission:
+    Nama | Kelas | Judul | Tanggal | Kata | Status | Aksi
+  - Filter JS-side: tombol Semua / Pending / Accepted / Rejected
+    (simpan semua data di variabel, filter saat tombol diklik,
+    jangan re-fetch saat filter berubah)
+  - Kolom Aksi untuk submission berstatus "pending":
+    Tombol ACC (hijau) + Tombol Tolak (merah)
+  - Kolom Aksi untuk submission berstatus "accepted" / "rejected":
+    Hanya tombol Hapus (abu/merah)
+  - Tombol Hapus → confirm() → delete → update via real-time
+  - Real-time subscription (sama seperti dashboard.html)
+  - Header: nama app + badge "Guru" | tombol Keluar
+
+HALAMAN PAMERAN (pameran.html)
+  - Cek token → tidak valid → index.html
+  - Header: nama app | link kembali ke dashboard | tombol Keluar
+  - Fetch semua karya berstatus "accepted", sort -updated
+  - Render sebagai feed card scroll vertikal
+    (1 kolom di mobile, 2 kolom di desktop dengan CSS grid/flex)
+  - Per card: avatar inisial + nama siswa + kelas,
+    judul karya (besar), preview deskripsi (max 3 baris, truncate),
+    tanggal ACC (formatDate), tombol "Baca Karya" (buka PDF tab baru)
+  - Real-time subscription: jika ada karya baru di-ACC,
+    panggil fetchAndRenderPameran() ulang
+  - Empty state: "Belum ada karya yang dipamerkan."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 10 — SPESIFIKASI KOMPONEN UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HALAMAN LOGIN (index.html)
+  - Layout: flex column center, min-height: 100vh
+  - Card: max-width 400px, padding 2rem, border-radius 12px
+  - Elemen dalam card (urutan dari atas):
+      Nama aplikasi (heading besar)
+      Input email (type="email", placeholder="Email sekolah")
+      Input password (type="password")
+      Tombol "Masuk" (full width)
+      Area pesan error (id="error-msg", merah, tersembunyi)
+  - Tombol loading: disabled + teks "Memuat..."
+  - Pesan error muncul di bawah tombol (bukan toast)
+
+NAVIGASI HEADER (semua halaman kecuali index.html)
+  - Posisi: sticky top, full width
+  - Kiri : nama aplikasi (teks atau logo)
+  - Kanan: nama user | link "Profil" (hanya di dashboard) |
+           link "Pameran" (di dashboard dan profil) |
+           tombol "Keluar"
+  - Guru : badge "Guru" (pill kecil) di samping nama user
+  - Profil link tidak tampil di profile.html (sudah di situ)
+  - Profil link tidak tampil di guru.html
+  - Pameran link tidak tampil di pameran.html (sudah di situ)
+
+TOMBOL FAB
+  - position: fixed, bottom: 1.5rem, right: 1.5rem
+  - width: 56px, height: 56px, border-radius: 50%
+  - z-index: 100
+  - Icon "+" dari Lucide, ukuran 24px
+  - State normal  : background warna primary, cursor pointer
+  - State cooldown: background #9ca3af (abu), cursor not-allowed,
+    teks countdown MM:SS (font-size 14px) menggantikan icon
+  - State loading : spinner CSS menggantikan icon, pointer-events none
+  - Hanya tampil di dashboard.html
+
+MODAL SUBMIT
+  - Overlay: position fixed, inset 0, background rgba(0,0,0,0.5),
+    z-index 200, klik overlay → tutup modal
+  - Card modal: max-width 480px, margin: auto, position relatif
+    terhadap overlay, background white, border-radius 12px,
+    padding 1.5rem
+  - Header: teks "Kumpulkan Naskah" + tombol × di kanan
+  - Fields (dari atas ke bawah):
+      Label "Judul Naskah" + input text
+        maxlength=150, required
+        Counter di kanan bawah field: "0/150"
+      Label "Deskripsi" + textarea
+        rows=3, maxlength=500, optional
+        Counter di kanan bawah: "0/500"
+      Label "File PDF" + area upload kustom:
+        Input type=file tersembunyi (display:none)
+        Tombol "Pilih PDF" yang memanggil input.click()
+        accept=".pdf"
+        Setelah dipilih: tampilkan nama file + ukuran (format KB/MB)
+        Jika size > 5MB: pesan error merah, reset input.value
+      Pesan error per field: <p class="text-red-500 text-sm">
+      Tombol "Kirim" (full width, warna primary, margin-top 1rem)
+  - Tombol Kirim disabled + teks "Mengirim..." saat loading
+  - Tutup modal: reset semua field dan error
+
+LEADERBOARD TABLE (dashboard.html & guru.html)
+  - Kolom: # | Kelas | Total Poin | Jumlah Karya
+  - Baris rank 1: background #fef9c3 (kuning sangat muda)
+  - Baris rank 2: background #f3f4f6 (abu sangat muda)
+  - Baris rank 3: background #fff7ed (oranye sangat muda)
+  - Baris kelas milik user login: border-left: 3px solid #3b82f6
+    (deteksi dengan membandingkan kelas user dengan kelas baris)
+  - Empty state: satu baris colspan=4,
+    teks "Belum ada karya yang di-ACC."
+
+TOMBOL ACC & TOLAK (guru.html)
+  - Tombol ACC  : background #16a34a, teks putih, teks "ACC",
+                  border-radius 6px, padding 4px 12px,
+                  hanya tampil untuk submission berstatus "pending"
+  - Tombol Tolak: background #dc2626, teks putih, teks "Tolak",
+                  border-radius 6px, padding 4px 12px,
+                  hanya tampil untuk submission berstatus "pending"
+  - Tombol Hapus: background #6b7280, teks putih, teks "Hapus",
+                  border-radius 6px, padding 4px 12px,
+                  tampil untuk semua status
+
+CARD PAMERAN (pameran.html)
+  - Layout: CSS grid, 1 kolom mobile, 2 kolom desktop (min-width 768px)
+  - Setiap card:
+      background white, border-radius 12px, padding 1.25rem,
+      box-shadow ringan (shadow-md Tailwind)
+      ─ Baris atas: avatar inisial (32px, bulat) + nama siswa
+        + pill kelas (background abu muda)
+      ─ Judul karya: font-size 1.1rem, font-weight 600,
+        margin-top 0.5rem
+      ─ Preview deskripsi: max 3 baris, overflow-hidden,
+        text-overflow ellipsis (line-clamp-3 Tailwind)
+      ─ Baris bawah: tanggal ACC (text-sm, abu) di kiri,
+        tombol "Baca Karya" (primary color, kecil) di kanan
+
+TOAST NOTIFIKASI
+  - position: fixed, top: 1rem, left: 50%, transform: translateX(-50%)
+  - z-index: 9999
+  - min-width: 280px, padding: 0.75rem 1.25rem, border-radius: 8px
+  - Animasi: translateY(-10px)→0 saat muncul, opacity 1→0 saat hilang
+  - Auto-dismiss: 4000ms
+  - Sukses: background #16a34a, teks putih
+  - Error : background #dc2626, teks putih
+  - Info  : background #2563eb, teks putih
+  - Toast antrean ("Karya Kamu masuk dalam Antrean ACC,
+    Harap menunggu.") menggunakan tipe 'info' (biru)
+
+AVATAR INISIAL (profile.html & pameran.html)
+  - width: 48px (profile) / 32px (pameran), height: sama,
+    border-radius: 50%
+  - background: dari getAvatarColor(name)
+  - teks: getInitials(name), warna putih, font-weight 500
+  - Fallback jika nama kosong: teks "??"
+
+BADGE STATUS
+  - "pending"   → background #fef9c3, teks #854d0e, label: "Menunggu ACC"
+  - "accepted"  → background #dcfce7, teks #15803d, label: "Diterima"
+  - "rejected"  → background #fee2e2, teks #dc2626, label: "Ditolak"
+  - font-size: 12px, padding: 2px 8px, border-radius: 9999px
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 11 — ERROR HANDLING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FRONTEND — per skenario:
+
+  Fetch FastAPI gagal total (network/FastAPI mati):
+    showToast('Server tidak bisa dihubungi. Pastikan backend
+    sudah dijalankan.', 'error')
+    Tombol kembali aktif.
+
+  Response 401 dari FastAPI di tengah sesi:
+    logout() — hapus semua localStorage, redirect index.html
+
+  Response 429 dari FastAPI:
+    Tutup modal. Panggil startCooldown(data.retry_after_seconds).
+    FAB disabled dengan countdown (maksimal 60 detik).
+
+  Response 400, 409, 422, 500 dari FastAPI:
+    Tampilkan data.message di dalam modal (bukan toast).
+    Tombol Kirim kembali aktif.
+
+  PocketBase SDK error saat fetch leaderboard/pameran:
+    Tampilkan di area tabel/feed:
+      <p>Gagal memuat data.</p>
+      <button onclick="fetchAndRender...()">Coba Lagi</button>
+
+  Token expired saat halaman load:
+    pb.authStore.isValid === false
+    sessionStorage.setItem('redirect_message',
+      'Sesi berakhir, silakan login kembali.')
+    window.location.href = '/index.html'
+
+  Gagal ACC/Tolak karya (guru.html):
+    showToast('Gagal. Coba lagi.', 'error')
+    Tidak ada perubahan di UI (data tetap dari state terakhir)
+
+FASTAPI — standar wajib:
+
+  Semua route handler dibungkus try/except.
+  Jika httpx.RequestError (PocketBase tidak bisa dihubungi):
+    return JSONResponse(500, {"error":"server_error",
+      "message":"Terjadi kesalahan. Coba lagi."})
+  Selalu return JSON. Tidak pernah biarkan FastAPI return
+  HTML error page default (matikan dengan exception_handlers).
+  Jangan expose traceback Python ke response body.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 12 — DEPENDENCY & SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+requirements.txt (isi persis ini, tidak lebih):
+  fastapi
+  uvicorn[standard]
+  python-multipart
+  pymupdf
+  httpx
+  python-dotenv
+
+.env (letakkan di backend/):
+  POCKETBASE_URL=http://localhost:8090
+  POCKETBASE_ADMIN_EMAIL=admin@localhost
+  POCKETBASE_ADMIN_PASSWORD=ganti_password_ini
+
+CDN (tambahkan di <head> setiap file HTML, urutan ini wajib):
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
+  <script src="/app.js"></script>
+
+Catatan CDN:
+  - Urutan script di atas TIDAK boleh diubah.
+  - app.js wajib diload SETELAH pocketbase.umd.js.
+  - Aktifkan Lucide icons dengan lucide.createIcons() setelah
+    seluruh DOM selesai dimuat (gunakan DOMContentLoaded atau
+    letakkan script di akhir body).
+  - Jangan tambah CDN library lain tanpa izin.
+
+PocketBase setup awal (dilakukan USER secara manual, BUKAN agent):
+  1. Download executable versi v0.22+ dari https://pocketbase.io/docs/
+  2. chmod +x pocketbase (Mac/Linux)
+  3. ./pocketbase serve
+  4. Buka http://localhost:8090/_/ → buat akun admin pertama
+  5. Buat koleksi "users" (tipe: Auth):
+       Tambahkan field: name (Text, required)
+       Tambahkan field: role (Text, required, default: "student")
+       Tambahkan field: kelas (Text, required)
+       Set API rules sesuai Bagian 5
+  6. Buat koleksi "submissions" (tipe: Base):
+       Tambahkan semua field sesuai Bagian 5
+       Set API rules sesuai Bagian 5
+  7. Buat index di koleksi submissions:
+       file_hash → Unique
+       user_id   → Non-unique
+       status    → Non-unique
+  8. Buat minimal 1 akun student dan 1 akun teacher untuk testing
+     (via admin panel → Collections → users → New record)
+     Pastikan field role diisi dengan benar ("student" / "teacher")
+     Pastikan field kelas diisi (contoh: "X IPA 1")
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BAGIAN 13 — CONSTRAINT UNTUK CODE AGENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TECH STACK — tidak boleh diubah:
+  ✗ Dilarang React, Vue, Angular, Svelte, atau framework JS apapun
+  ✗ Dilarang Axios — gunakan Fetch API
+  ✗ Dilarang library Python di luar requirements.txt
+  ✗ Dilarang CDN tambahan di luar yang ada di Bagian 12
+  ✗ Dilarang membuat halaman admin di aplikasi
+
+SCOPE — tidak boleh ditambah:
+  ✗ Dilarang tambah fitur yang tidak ada di dokumen ini
+  ✗ Dilarang tambah endpoint FastAPI baru
+  ✗ Dilarang tambah field baru ke schema database
+
+IMPLEMENTASI — wajib diikuti:
+  ✓ Admin token PocketBase: gunakan get_admin_token() (Bagian 7)
+    Jangan simpan sebagai variabel global statis biasa.
+  ✓ Endpoint admin PocketBase v0.22+:
+    /api/collections/_superusers/auth-with-password
+    BUKAN /api/admins/auth-with-password (deprecated)
+  ✓ Leaderboard: hitung TOTAL score per kelas di JS,
+    bukan per individu. Expand user_id untuk dapat field "kelas".
+  ✓ localStorage keys yang digunakan (tidak boleh ganti nama):
+    "pb_token"         → string token PocketBase
+    "pb_user"          → JSON string data user
+    "last_submit_time" → string dari String(Date.now())
+  ✓ Cooldown wajib dicek di FastAPI backend (60 detik),
+    bukan hanya frontend
+  ✓ File PDF: FastAPI proses dari memory, tidak tulis ke disk
+    Tidak ada os.path atau open() untuk handle file upload
+  ✓ Setiap halaman HTML: cek pb.authStore.isValid saat load,
+    sebelum fetch data apapun
+  ✓ Semua response error FastAPI: JSON dengan "error" dan "message"
+  ✓ Jangan expose traceback Python ke response client
+  ✓ Unsubscribe real-time di window beforeunload
+  ✓ Semua fetch ke FastAPI dibungkus try/catch
+  ✓ lucide.createIcons() dipanggil setelah DOM ready
+  ✓ ACC/Tolak karya: lakukan via PocketBase JS SDK di frontend
+    (guru.html), bukan lewat FastAPI endpoint baru
+  ✓ Toast setelah submit sukses WAJIB bertipe 'info' (biru):
+    "Karya Kamu masuk dalam Antrean ACC, Harap menunggu."
+    Jangan gunakan tipe 'success' untuk ini.
+  ✓ Score submission saat create = 0 (pending)
+    Score submission saat ACC = 100 (flat, tidak dihitung dari kata)
+
+URUTAN BUILD — wajib diikuti:
+  ✓ FASE 1 dulu (backend), baru FASE 2 (login), baru FASE 3
+    (dashboard), baru FASE 4 (profil + guru), baru FASE 5 (pameran)
+  ✓ Selesaikan dan test satu fase sebelum lanjut ke fase berikutnya
+  ✓ Laporkan hasil dan tunggu konfirmasi setelah setiap fase
+
+================================================================
+END OF DOCUMENT — PRD v3.0 Revisi
+================================================================

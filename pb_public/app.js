@@ -55,3 +55,32 @@ function logout() {
     localStorage.removeItem('last_submit_time');
     window.location.href = '/index.html';
 }
+
+// ── Fungsi Guru: ACC Karya ────────────────────────────────────────────────────
+async function accKarya(recordId) {
+    try {
+        await pb.collection('submissions').update(recordId, {
+            status: 'accepted',
+            score:  100
+        });
+        showToast('Karya berhasil di-ACC! Poin diberikan.', 'success');
+        // Tabel dan leaderboard update otomatis via real-time
+    } catch (e) {
+        showToast('Gagal ACC karya. Coba lagi.', 'error');
+    }
+}
+
+// ── Fungsi Guru: Tolak Karya ──────────────────────────────────────────────────
+async function tolakKarya(recordId) {
+    if (!confirm('Yakin menolak karya ini?')) return;
+    try {
+        await pb.collection('submissions').update(recordId, {
+            status: 'rejected',
+            score:  0
+        });
+        showToast('Karya ditolak.', 'info');
+        // Tabel update otomatis via real-time
+    } catch (e) {
+        showToast('Gagal menolak karya. Coba lagi.', 'error');
+    }
+}

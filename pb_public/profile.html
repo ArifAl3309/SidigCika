@@ -32,7 +32,8 @@
       <div id="avatar" class="w-12 h-12 rounded-full flex items-center justify-center text-white font-medium text-lg"></div>
       <div>
         <h1 class="text-2xl font-bold text-gray-900" id="profile-name"></h1>
-        <p class="text-gray-500 text-sm" id="profile-stats">Memuat statistik...</p>
+        <p class="text-sm text-gray-500 mt-0.5" id="profile-kelas"></p>
+        <p class="text-gray-500 text-sm mt-1" id="profile-stats">Memuat statistik...</p>
       </div>
       <div class="ml-auto">
         <a href="/dashboard.html" class="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm">
@@ -54,6 +55,15 @@
       const name = user.name || 'User';
       document.getElementById('header-name').textContent = name;
       document.getElementById('profile-name').textContent = name;
+
+      // Tampilkan kelas user
+      const kelas = user.Kelas || user.kelas || '';
+      const kelasEl = document.getElementById('profile-kelas');
+      if (kelas) {
+        kelasEl.innerHTML = `<span class="inline-block px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">${kelas}</span>`;
+      } else {
+        kelasEl.textContent = 'Kelas belum diisi';
+      }
       
       const avatar = document.getElementById('avatar');
       avatar.style.backgroundColor = getAvatarColor(name);
@@ -68,19 +78,19 @@
         
         let terbaikId = null;
         let maxScore = -1;
-        let processedCount = 0;
-        
+        let acceptedCount = 0;
+
         records.forEach(r => {
-          if (r.status === 'processed') {
-            processedCount++;
+          if (r.status === 'accepted') {
+            acceptedCount++;
             if (r.score > maxScore) {
               maxScore = r.score;
               terbaikId = r.id;
             }
           }
         });
-        
-        document.getElementById('profile-stats').textContent = `${records.length} total naskah, ${processedCount} diterima.`;
+
+        document.getElementById('profile-stats').textContent = `${records.length} total naskah, ${acceptedCount} diterima.`;
         
         const container = document.getElementById('history-container');
         if (records.length === 0) {
@@ -92,13 +102,17 @@
             card.className = 'bg-white rounded-xl shadow p-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between';
             
             let statusBadge = '';
-            if (record.status === 'processed') {
-              statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full bg-[#dcfce7] text-[#15803d]">Diterima</span>';
+            if (record.status === 'accepted') {
+              statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full bg-green-100 text-green-800 font-medium">Diterima</span>';
             } else if (record.status === 'rejected') {
-              statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full bg-[#fee2e2] text-[#dc2626]">Ditolak</span>';
+              statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full bg-red-100 text-red-800 font-medium">Ditolak</span>';
+            } else {
+              // pending
+              statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full font-medium" style="background:#fef9c3;color:#854d0e">Menunggu ACC</span>';
             }
 
-            const isTerbaik = record.id === terbaikId;
+            // Badge Terbaik: hanya untuk submission accepted dengan score tertinggi
+            const isTerbaik = record.id === terbaikId && record.status === 'accepted';
             const badgeTerbaik = isTerbaik ? '<span class="px-2 py-0.5 text-[12px] rounded-full bg-yellow-100 text-yellow-800 ml-2 font-medium">✨ Terbaik</span>' : '';
 
             card.innerHTML = `
