@@ -152,7 +152,7 @@
         const initials = getInitials(name);
         const avatarBg = getAvatarColor(name);
         const pdfUrl   = pb.files.getUrl(record, record.file);
-        const tanggal  = formatDate(record.updated);
+        const tanggal  = formatDate(record.created);
         const desc     = record.description ? record.description.trim() : '';
 
         const card = document.createElement('article');

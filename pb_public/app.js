@@ -27,7 +27,12 @@ function showToast(message, type = 'info') {
 }
 
 function formatDate(isoString) {
-    const d = new Date(isoString);
+    if (!isoString) return '-';
+    // PocketBase mengembalikan format "YYYY-MM-DD HH:mm:ss.SSSZ" (pakai spasi, bukan T).
+    // Beberapa browser membutuhkan 'T' di antara tanggal dan jam agar valid ISO-8601.
+    const safeString = isoString.replace(' ', 'T');
+    const d = new Date(safeString);
+    if (isNaN(d.getTime())) return 'Invalid Date';
     return d.toLocaleDateString('id-ID', {
         day: '2-digit', month: 'short', year: 'numeric'
     }) + ', ' + d.toLocaleTimeString('id-ID', {
