@@ -1,55 +1,177 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Profil - NaskahSiswa</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
-  <script src="/app.js"></script>
-  <script>
-    if (!pb.authStore.isValid) {
-      sessionStorage.setItem('redirect_message', 'Sesi berakhir, silakan login kembali.')
-      window.location.href = '/index.html'
-    }
-  </script>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Profil - Sidig Cika</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#f2fbfd",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "primary-fixed-dim": "#8bd0ef",
+                    "surface-tint": "#116681",
+                    "inverse-on-surface": "#e9f2f4",
+                    "surface-dim": "#d3dcde",
+                    "secondary-container": "#8debff",
+                    "surface-container-highest": "#dbe4e6",
+                    "on-tertiary-container": "#a5dede",
+                    "on-secondary-fixed-variant": "#004e5a",
+                    "on-tertiary-fixed-variant": "#0f4f4f",
+                    "on-background": "#141d1f",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#001f2a",
+                    "primary-container": "#09637e",
+                    "secondary": "#006877",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#98d1d1",
+                    "on-surface": "#141d1f",
+                    "error": "#ba1a1a",
+                    "on-surface-variant": "#40484c",
+                    "secondary-fixed-dim": "#76d4e7",
+                    "on-primary-container": "#98ddfc",
+                    "surface-bright": "#f2fbfd",
+                    "surface-variant": "#dbe4e6",
+                    "tertiary": "#0a4c4c",
+                    "on-secondary-fixed": "#001f25",
+                    "on-tertiary-fixed": "#002020",
+                    "on-secondary-container": "#006b7a",
+                    "outline": "#70787d",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed": "#a3eeff",
+                    "background": "#f2fbfd",
+                    "surface-container-low": "#ecf5f7",
+                    "surface-container-high": "#e1eaec",
+                    "on-primary-fixed-variant": "#004d63",
+                    "on-error": "#ffffff",
+                    "primary": "#004a5f",
+                    "tertiary-fixed": "#b4eded",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#bce9ff",
+                    "inverse-primary": "#8bd0ef",
+                    "outline-variant": "#bfc8cd",
+                    "inverse-surface": "#293234",
+                    "surface-container": "#e6eff1",
+                    "tertiary-container": "#2b6464"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Lexend"],
+                    "body": ["Lexend"],
+                    "label": ["Lexend"]
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
+    <script src="/app.js"></script>
+    <script>
+      if (!pb.authStore.isValid) {
+        sessionStorage.setItem('redirect_message', 'Sesi berakhir, silakan login kembali.');
+        window.location.href = '/index.html';
+      }
+    </script>
 </head>
-<body class="bg-gray-50 min-h-screen">
-  <!-- HEADER -->
-  <header class="bg-white shadow sticky top-0 z-50">
-    <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="font-bold text-xl text-blue-600">NaskahSiswa</div>
-      <div class="flex items-center gap-4">
-        <span class="text-sm text-gray-700" id="header-name"></span>
-        <button onclick="logout()" class="text-sm text-red-600 hover:text-red-700 font-medium">Keluar</button>
-      </div>
-    </div>
-  </header>
+<body class="bg-background text-on-surface antialiased">
+    <!-- TopNavBar Shell -->
+    <header class="fixed top-0 w-full z-50 glass-header shadow-sm shadow-cyan-900/5">
+        <div class="flex justify-between items-center h-16 px-8 max-w-7xl mx-auto">
+            <div class="flex items-center gap-6">
+                <span class="text-2xl font-bold text-cyan-900 dark:text-cyan-50">Sidig Cika</span>
+                <nav class="hidden md:flex items-center gap-6 text-sm tracking-wide">
+                    <a class="text-cyan-600/70 hover:text-cyan-900 transition-colors" href="/dashboard.html">Dashboard</a>
+                    <a class="text-cyan-700 font-semibold border-b-2 border-cyan-700" href="/profile.html">Profil</a>
+                    <a class="text-cyan-600/70 hover:text-cyan-900 transition-colors" href="/pameran.html">Pameran</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="header-name" class="text-sm font-medium text-cyan-800"></span>
+                <button onclick="logout()" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">Keluar</button>
+            </div>
+        </div>
+    </header>
 
-  <main class="max-w-4xl mx-auto px-4 py-8">
-    <!-- Profil Header -->
-    <div class="bg-white rounded-xl shadow p-6 mb-8 flex items-center gap-6">
-      <div id="avatar" class="w-12 h-12 rounded-full flex items-center justify-center text-white font-medium text-lg"></div>
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900" id="profile-name"></h1>
-        <p class="text-sm text-gray-500 mt-0.5" id="profile-kelas"></p>
-        <p class="text-gray-500 text-sm mt-1" id="profile-stats">Memuat statistik...</p>
-      </div>
-      <div class="ml-auto">
-        <a href="/dashboard.html" class="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm">
-          <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Dashboard
+    <main class="pt-24 pb-20 px-6 max-w-5xl mx-auto min-h-screen">
+        <!-- Profile Hero Section -->
+        <section class="mb-12">
+            <div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div class="flex items-center gap-6">
+                    <div id="avatar" class="w-16 h-16 md:w-20 md:h-20 bg-primary-container bg-gradient-to-br from-primary-container to-primary flex items-center justify-center rounded-full text-white text-xl font-bold">
+                    </div>
+                    <div>
+                        <div class="flex xl:flex-row flex-col items-start xl:items-center gap-3 mb-1">
+                            <h1 id="profile-name" class="text-2xl md:text-3xl font-bold text-on-surface"></h1>
+                            <div id="profile-kelas"></div>
+                        </div>
+                        <p id="profile-stats" class="text-on-surface-variant text-sm flex items-center gap-2 mt-2">
+                            Memuat statistik...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Submission History Section -->
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-on-surface">Riwayat Karya</h2>
+                <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+                    <span class="material-symbols-outlined text-base">sort</span>
+                    <span>Terbaru</span>
+                </div>
+            </div>
+            <div id="history-container" class="space-y-4">
+                <p class="text-gray-500">Memuat riwayat...</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Nav for Mobile -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-white/80 backdrop-blur-lg border-t border-outline-variant/10 flex justify-around items-center h-16 px-4 z-50">
+        <a class="flex flex-col items-center gap-1 text-cyan-600/70" href="/dashboard.html">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="text-[10px] font-medium">Dashboard</span>
         </a>
-      </div>
-    </div>
+        <a class="flex flex-col items-center gap-1 text-cyan-800 font-bold" href="/profile.html">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+            <span class="text-[10px]">Profil</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-cyan-600/70" href="/pameran.html">
+            <span class="material-symbols-outlined">gallery_thumbnail</span>
+            <span class="text-[10px] font-medium">Pameran</span>
+        </a>
+        <button class="flex flex-col items-center gap-1 text-red-600/70" onclick="logout()">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="text-[10px] font-medium">Keluar</span>
+        </button>
+    </nav>
 
-    <!-- Riwayat -->
-    <h2 class="text-xl font-bold text-gray-900 mb-4">Riwayat Submission</h2>
-    <div id="history-container" class="space-y-4">
-      <p class="text-gray-500">Memuat riwayat...</p>
-    </div>
-  </main>
-
-  <script>
+    <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const user = pb.authStore.model;
       const name = user.name || 'User';
