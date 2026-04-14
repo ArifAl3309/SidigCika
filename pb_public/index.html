@@ -1,16 +1,98 @@
 <!DOCTYPE html>
-<html lang="id">
+<html class="light" lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - NAMA APLIKASI</title>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Masuk - Sidig Cika</title>
     
     <!-- CDN Wajib Sesuai Bagian 12 -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <script src="/app.js"></script>
     <link rel="stylesheet" href="/style.css">
+
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "surface": "#f2fbfd",
+                "surface-container-lowest": "#ffffff",
+                "on-error-container": "#93000a",
+                "primary-fixed-dim": "#8bd0ef",
+                "surface-tint": "#116681",
+                "inverse-on-surface": "#e9f2f4",
+                "surface-dim": "#d3dcde",
+                "secondary-container": "#8debff",
+                "surface-container-highest": "#dbe4e6",
+                "on-tertiary-container": "#a5dede",
+                "on-secondary-fixed-variant": "#004e5a",
+                "on-tertiary-fixed-variant": "#0f4f4f",
+                "on-background": "#141d1f",
+                "on-primary": "#ffffff",
+                "on-primary-fixed": "#001f2a",
+                "primary-container": "#09637e",
+                "secondary": "#006877",
+                "on-tertiary": "#ffffff",
+                "tertiary-fixed-dim": "#98d1d1",
+                "on-surface": "#141d1f",
+                "error": "#ba1a1a",
+                "on-surface-variant": "#40484c",
+                "secondary-fixed-dim": "#76d4e7",
+                "on-primary-container": "#98ddfc",
+                "surface-bright": "#f2fbfd",
+                "surface-variant": "#dbe4e6",
+                "tertiary": "#0a4c4c",
+                "on-secondary-fixed": "#001f25",
+                "on-tertiary-fixed": "#002020",
+                "on-secondary-container": "#006b7a",
+                "outline": "#70787d",
+                "on-secondary": "#ffffff",
+                "secondary-fixed": "#a3eeff",
+                "background": "#f2fbfd",
+                "surface-container-low": "#ecf5f7",
+                "surface-container-high": "#e1eaec",
+                "on-primary-fixed-variant": "#004d63",
+                "on-error": "#ffffff",
+                "primary": "#004a5f",
+                "tertiary-fixed": "#b4eded",
+                "error-container": "#ffdad6",
+                "primary-fixed": "#bce9ff",
+                "inverse-primary": "#8bd0ef",
+                "outline-variant": "#bfc8cd",
+                "inverse-surface": "#293234",
+                "surface-container": "#e6eff1",
+                "tertiary-container": "#2b6464"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Lexend"],
+                "body": ["Lexend"],
+                "label": ["Lexend"]
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .signature-gradient {
+            background: linear-gradient(135deg, #09637e 0%, #004a5f 100%);
+        }
+    </style>
     
     <script>
         // Cek redirect jika sudah login
@@ -19,30 +101,72 @@
         }
     </script>
 </head>
-<body class="bg-gray-50 flex flex-col items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-[400px] bg-white p-8 rounded-xl shadow-md">
-        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">NAMA APLIKASI</h1>
-        
-        <form id="login-form" class="space-y-4">
-            <div>
-                <input type="email" id="email" required placeholder="Email sekolah"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+<body class="bg-surface min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-[400px]">
+        <!-- Brand Identity Container -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-surface-container mb-4">
+                <span class="material-symbols-outlined text-primary text-4xl">auto_stories</span>
             </div>
-            
-            <div>
-                <input type="password" id="password" required placeholder="Password"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            
-            <button type="submit" id="submit-btn"
-                class="w-full py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
-                Masuk
-            </button>
-            
-            <div id="error-msg" class="text-red-500 text-sm text-center hidden"></div>
-        </form>
+            <h1 class="text-on-surface text-3xl font-bold tracking-tight mb-2">Sidig Cika</h1>
+            <p class="text-on-surface-variant text-sm font-medium tracking-wide">Platform Karya Tulis Siswa</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-surface-container-lowest rounded-xl p-8 shadow-[0_32px_64px_-12px_rgba(9,99,126,0.08)]">
+            <form id="login-form" class="space-y-6">
+                <!-- Error Message (Hidden by default) -->
+                <div id="error-msg" class="hidden bg-error-container text-on-error-container text-xs font-medium p-4 rounded-lg text-center">
+                    Email atau password yang Anda masukkan salah. Silakan coba lagi.
+                </div>
+
+                <!-- Input Group: Email -->
+                <div class="space-y-2">
+                    <label class="block text-[0.75rem] font-semibold text-on-surface-variant tracking-wider uppercase" for="email">Email Sekolah</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-outline text-lg group-focus-within:text-secondary transition-colors">alternate_email</span>
+                        </div>
+                        <input class="block w-full pl-11 pr-4 py-3 bg-surface-container-low border-none rounded-xl text-on-surface placeholder:text-outline/50 focus:ring-2 focus:ring-secondary/20 focus:bg-surface-container-lowest transition-all outline-none" id="email" placeholder="admin@sekolah.sch.id" type="email" required/>
+                    </div>
+                </div>
+
+                <!-- Input Group: Password -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-[0.75rem] font-semibold text-on-surface-variant tracking-wider uppercase" for="password">Password</label>
+                    </div>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-outline text-lg group-focus-within:text-secondary transition-colors">lock</span>
+                        </div>
+                        <input class="block w-full pl-11 pr-12 py-3 bg-surface-container-low border-none rounded-xl text-on-surface placeholder:text-outline/50 focus:ring-2 focus:ring-secondary/20 focus:bg-surface-container-lowest transition-all outline-none" id="password" placeholder="••••••••" type="password" required/>
+                        <button class="absolute inset-y-0 right-0 pr-4 flex items-center" type="button" onclick="const p = document.getElementById('password'); p.type = p.type === 'password' ? 'text' : 'password';">
+                            <span class="material-symbols-outlined text-outline text-lg hover:text-on-surface transition-colors">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Primary Action -->
+                <button id="submit-btn" class="signature-gradient w-full py-4 rounded-xl text-white font-bold tracking-wide shadow-lg shadow-primary/20 hover:translate-y-[-2px] hover:shadow-xl transition-all duration-200" type="submit">
+                    Masuk
+                </button>
+            </form>
+        </div>
+
+        <!-- Footer Credits -->
+        <div class="mt-8 flex flex-col items-center space-y-4">
+            <p class="text-[0.65rem] text-outline/60 font-medium">© 2024 Sidig Cika Digital Curator platform. </p>
+        </div>
     </div>
 
+    <!-- Background Decoration -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] right-[-5%] w-[40vw] h-[40vw] bg-secondary-container/20 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-[30vw] h-[30vw] bg-primary-container/10 rounded-full blur-[100px]"></div>
+    </div>
+
+    <!-- SCRIPT ASLI DARI INDEX.HTML (TIDAK DIUBAH SAMA SEKALI) -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
