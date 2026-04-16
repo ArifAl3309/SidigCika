@@ -1,12 +1,91 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="light">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard Guru - NaskahSiswa</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Sidig Cika - Teacher Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&family=Lexend:wght@100..900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
   <script src="/app.js"></script>
+  <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#f2fbfd",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#8bd0ef",
+                        "surface-tint": "#116681",
+                        "inverse-on-surface": "#e9f2f4",
+                        "surface-dim": "#d3dcde",
+                        "secondary-container": "#8debff",
+                        "surface-container-highest": "#dbe4e6",
+                        "on-tertiary-container": "#a5dede",
+                        "on-secondary-fixed-variant": "#004e5a",
+                        "on-tertiary-fixed-variant": "#0f4f4f",
+                        "on-background": "#141d1f",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#001f2a",
+                        "primary-container": "#09637e",
+                        "secondary": "#006877",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#98d1d1",
+                        "on-surface": "#141d1f",
+                        "error": "#ba1a1a",
+                        "on-surface-variant": "#40484c",
+                        "secondary-fixed-dim": "#76d4e7",
+                        "on-primary-container": "#98ddfc",
+                        "surface-bright": "#f2fbfd",
+                        "surface-variant": "#dbe4e6",
+                        "tertiary": "#0a4c4c",
+                        "on-secondary-fixed": "#001f25",
+                        "on-tertiary-fixed": "#002020",
+                        "on-secondary-container": "#006b7a",
+                        "outline": "#70787d",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#a3eeff",
+                        "background": "#f2fbfd",
+                        "surface-container-low": "#ecf5f7",
+                        "surface-container-high": "#e1eaec",
+                        "on-primary-fixed-variant": "#004d63",
+                        "on-error": "#ffffff",
+                        "primary": "#004a5f",
+                        "tertiary-fixed": "#b4eded",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#bce9ff",
+                        "inverse-primary": "#8bd0ef",
+                        "outline-variant": "#bfc8cd",
+                        "inverse-surface": "#293234",
+                        "surface-container": "#e6eff1",
+                        "tertiary-container": "#2b6464"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Lexend"],
+                        "body": ["Lexend"],
+                        "label": ["Lexend"]
+                    }
+                },
+            },
+        }
+  </script>
+  <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Lexend', sans-serif; }
+  </style>
+
   <script>
     if (!pb.authStore.isValid) {
       sessionStorage.setItem('redirect_message', 'Sesi berakhir, silakan login kembali.')
@@ -16,78 +95,119 @@
     }
   </script>
 </head>
-<body class="bg-gray-50 min-h-screen">
-  <!-- HEADER -->
-  <header class="bg-white shadow sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="font-bold text-xl text-blue-600">NaskahSiswa</div>
-        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Guru</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <span class="text-sm text-gray-700" id="header-name"></span>
-        <button onclick="logout()" class="text-sm text-red-600 hover:text-red-700 font-medium">Keluar</button>
-      </div>
+<body class="bg-[#EBF4F6] text-[#1a1a1a] selection:bg-[#7AB2B2] selection:text-white">
+
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-white shadow-sm h-16 px-8 flex justify-between items-center border-b border-[#EBF4F6]">
+    <div class="flex items-center gap-4">
+        <span class="text-2xl font-bold text-[#09637E] tracking-tight">Sidig Cika</span>
+        <span class="bg-[#7AB2B2] text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-widest hidden md:inline-block" id="header-name">GURU</span>
     </div>
-  </header>
+    <nav class="hidden md:flex items-center space-x-8 text-sm tracking-wide font-medium">
+        <a class="text-[#09637E] font-semibold border-b-2 border-[#09637E] pb-1" href="/guru.html">Dashboard</a>
+        <a class="text-[#6b7280] hover:text-[#09637E] transition-colors pb-1" href="/pameran.html">Pameran</a>
+    </nav>
+    <div class="flex items-center gap-4">
+        <button onclick="logout()" class="text-[#09637E] font-medium text-sm hover:scale-95 duration-200 transition-transform hover:text-[#088395]">Keluar</button>
+    </div>
+</header>
 
-  <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
-    
-    <!-- LEADERBOARD PENUH -->
-    <section>
-      <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><i data-lucide="trophy" class="w-5 h-5 text-amber-500"></i> Leaderboard (Semua Siswa)</h2>
-      <div class="bg-white rounded-xl shadow overflow-hidden">
-        <table class="w-full text-left text-sm text-gray-600">
-          <thead class="bg-gray-50 text-gray-900 uppercase">
-            <tr>
-              <th class="px-6 py-4 font-semibold w-16">#</th>
-              <th class="px-6 py-4 font-semibold">Kelas</th>
-              <th class="px-6 py-4 font-semibold">Total Poin</th>
-              <th class="px-6 py-4 font-semibold text-right">Jumlah Karya</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboard-body" class="divide-y divide-gray-100">
-            <tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">Memuat leaderboard...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- SEMUA SUBMISSION -->
-    <section>
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2"><i data-lucide="list" class="w-5 h-5 text-blue-500"></i> Semua Submission</h2>
-        <div class="flex bg-gray-100 p-1 rounded-lg">
-          <button onclick="setFilter('all')" id="tab-all" class="px-4 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-gray-900">Semua</button>
-          <button onclick="setFilter('pending')" id="tab-pending" class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900">Pending</button>
-          <button onclick="setFilter('accepted')" id="tab-accepted" class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900">Diterima</button>
-          <button onclick="setFilter('rejected')" id="tab-rejected" class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900">Ditolak</button>
+<div class="flex pt-16 min-h-screen">
+    <!-- SideNavBar -->
+    <aside class="hidden md:flex flex-col h-screen w-64 bg-white p-4 space-y-2 border-r border-[#EBF4F6] sticky top-16 relative shadow-sm">
+        <div class="mb-6 px-2">
+            <p class="text-xl font-bold text-[#09637E]">Sidig Cika</p>
+            <p class="text-xs text-[#6b7280] font-medium">Digital Curator</p>
         </div>
-      </div>
-      
-      <div class="bg-white rounded-xl shadow overflow-hidden overflow-x-auto">
-        <table class="w-full text-left text-sm text-gray-600 min-w-[800px]">
-          <thead class="bg-gray-50 text-gray-900 uppercase">
-            <tr>
-              <th class="px-4 py-3 font-semibold">Nama / Tanggal</th>
-              <th class="px-4 py-3 font-semibold">Kelas</th>
-              <th class="px-4 py-3 font-semibold">Judul Naskah</th>
-              <th class="px-4 py-3 font-semibold">Kata</th>
-              <th class="px-4 py-3 font-semibold">Score</th>
-              <th class="px-4 py-3 font-semibold">Status</th>
-              <th class="px-4 py-3 font-semibold text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="submissions-body" class="divide-y divide-gray-100">
-            <tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Memuat data...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+        <a class="flex items-center gap-3 px-4 py-2 bg-[#EBF4F6] text-[#09637E] rounded-lg transition-all translate-x-1" href="/guru.html">
+            <span class="material-symbols-outlined rounded" data-icon="dashboard">dashboard</span>
+            <span class="font-medium">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-2 text-[#6b7280] hover:bg-[#EBF4F6] hover:text-[#09637E] transition-all rounded-lg" href="/pameran.html">
+            <span class="material-symbols-outlined rounded" data-icon="gallery_thumbnail">gallery_thumbnail</span>
+            <span class="font-medium">Pameran</span>
+        </a>
 
-  </main>
+        <!-- Unggah Karya dihilangkan (disembunyikan) -->
+        <div class="pt-8 px-2 hidden">
+            <button class="w-full py-3 bg-[#09637E] hover:bg-[#088395] text-white rounded-lg font-semibold text-sm shadow-sm transition-transform">
+                Unggah Karya
+            </button>
+        </div>
+    </aside>
 
-  <script>
+    <!-- Main Content Area -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div class="max-w-7xl mx-auto space-y-10">
+
+            <!-- Section 1: Leaderboard Kelas -->
+            <section>
+                <div class="mb-6">
+                    <span class="text-[10px] font-bold text-[#6b7280] uppercase tracking-[0.2em]">Data Performa Akademik</span>
+                    <h2 class="text-xl font-bold text-[#1a1a1a] mt-1">Leaderboard (Semua Siswa)</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-3 bg-white rounded-xl overflow-hidden border border-[#EBF4F6] shadow-sm">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-4 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider">#</th>
+                                    <th class="px-6 py-4 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider">Kelas</th>
+                                    <th class="px-6 py-4 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider">Total Poin</th>
+                                    <th class="px-6 py-4 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider text-right">Jumlah Karya</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body" class="divide-y divide-gray-100">
+                                <tr><td colspan="4" class="px-6 py-8 text-center text-[#6b7280]">Memuat leaderboard...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Daftar Karya Masuk -->
+            <section>
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+                    <div>
+                        <span class="text-[10px] font-bold text-[#6b7280] uppercase tracking-[0.2em]">Moderasi Konten</span>
+                        <h2 class="text-xl font-bold text-[#1a1a1a] mt-1">Daftar Karya Masuk</h2>
+                    </div>
+                    <div class="flex gap-2 p-1 border border-gray-200 bg-gray-50 rounded-lg">
+                        <button onclick="setFilter('all')" id="tab-all" class="px-4 py-1.5 text-xs font-bold rounded-md bg-white text-[#09637E] shadow-sm border border-gray-100">Semua</button>
+                        <button onclick="setFilter('pending')" id="tab-pending" class="px-4 py-1.5 text-xs font-bold rounded-md text-[#6b7280] hover:bg-gray-200 transition-all">Pending</button>
+                        <button onclick="setFilter('accepted')" id="tab-accepted" class="px-4 py-1.5 text-xs font-bold rounded-md text-[#6b7280] hover:bg-gray-200 transition-all">Diterima</button>
+                        <button onclick="setFilter('rejected')" id="tab-rejected" class="px-4 py-1.5 text-xs font-bold rounded-md text-[#6b7280] hover:bg-gray-200 transition-all">Ditolak</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-[#EBF4F6] overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider">Nama / Tanggal</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider">Kelas</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider">Judul Naskah</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider">Kata</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider">Score</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-[#6b7280] uppercase tracking-wider text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissions-body" class="divide-y divide-gray-100">
+                                <tr><td colspan="7" class="px-6 py-8 text-center text-[#6b7280]">Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- SCRIPTS DARI VERSI LAMA (TIDAK ADA PERUBAHAN) -->
+<script>
     let allSubmissions = [];
     let currentFilter = 'all';
 
@@ -128,30 +248,35 @@
     function renderLeaderboard(data) {
       const tbody = document.getElementById('leaderboard-body');
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">Belum ada karya yang di-ACC.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-on-surface-variant font-medium">Belum ada karya yang di-ACC.</td></tr>';
         return;
       }
 
       tbody.innerHTML = '';
       data.forEach((item, index) => {
-        const rank = index + 1;
-        let bgClass = '';
-        if (rank === 1) bgClass = 'bg-[#fef9c3]';
-        else if (rank === 2) bgClass = 'bg-[#f3f4f6]';
-        else if (rank === 3) bgClass = 'bg-[#fff7ed]';
-
-        let rankHtml = `<span class="font-medium text-gray-500">${rank}</span>`;
-        if (rank === 1) rankHtml = `<span class="inline-flex w-6 h-6 items-center justify-center rounded-full bg-yellow-400 text-white font-bold text-xs">1</span>`;
-        if (rank === 2) rankHtml = `<span class="inline-flex w-6 h-6 items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold text-xs">2</span>`;
-        if (rank === 3) rankHtml = `<span class="inline-flex w-6 h-6 items-center justify-center rounded-full bg-orange-300 text-white font-bold text-xs">3</span>`;
-
         const tr = document.createElement('tr');
-        if (bgClass) tr.className = bgClass;
+        let rowClass = 'bg-surface-container-lowest hover:bg-surface-container transition-colors';
+        let rankBadge = '';
+
+        if (index === 0) {
+            rowClass = 'bg-[#fef9c3] hover:bg-[#fef08a] transition-colors';
+            rankBadge = `<div class="flex items-center gap-2 pl-2"><span class="material-symbols-outlined text-amber-500" style="font-variation-settings: 'FILL' 1;">workspace_premium</span><span class="font-bold">1</span></div>`;
+        } else if (index === 1) {
+            rowClass = 'bg-[#f3f4f6] hover:bg-[#e5e7eb] transition-colors';
+            rankBadge = `<div class="flex items-center gap-2 pl-2"><span class="material-symbols-outlined text-slate-400" style="font-variation-settings: 'FILL' 1;">workspace_premium</span><span class="font-bold">2</span></div>`;
+        } else if (index === 2) {
+            rowClass = 'bg-[#fff7ed] hover:bg-[#ffedd5] transition-colors';
+            rankBadge = `<div class="flex items-center gap-2 pl-2"><span class="material-symbols-outlined text-orange-400" style="font-variation-settings: 'FILL' 1;">workspace_premium</span><span class="font-bold">3</span></div>`;
+        } else {
+            rankBadge = `<span class="font-bold pl-4">${index + 1}</span>`;
+        }
+
+        tr.className = rowClass;
         tr.innerHTML = `
-          <td class="px-6 py-4">${rankHtml}</td>
-          <td class="px-6 py-4 font-semibold text-gray-900">${item.Kelas}</td>
-          <td class="px-6 py-4 font-bold text-blue-600">${item.totalScore}</td>
-          <td class="px-6 py-4 text-right text-gray-600">${item.jumlahKarya}</td>
+          <td class="px-6 py-5">${rankBadge}</td>
+          <td class="px-6 py-5 font-bold text-on-surface">${item.Kelas}</td>
+          <td class="px-6 py-5 font-bold text-primary">${item.totalScore}</td>
+          <td class="px-6 py-5 text-right text-on-surface-variant font-medium">${item.jumlahKarya}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -182,8 +307,8 @@
 
     function getTabClass(isActive) {
       return isActive 
-        ? "px-4 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-gray-900 transition" 
-        : "px-4 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-900 transition";
+        ? "px-4 py-1.5 text-xs font-bold rounded-md bg-white text-primary shadow-sm transition" 
+        : "px-4 py-1.5 text-xs font-bold rounded-md text-on-surface-variant hover:bg-white/50 transition-all";
     }
 
     function renderSubmissions() {
@@ -192,7 +317,7 @@
       const filtered = allSubmissions.filter(r => currentFilter === 'all' || r.status === currentFilter);
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">Tidak ada data.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-on-surface-variant font-medium">Tidak ada data.</td></tr>';
         return;
       }
 
@@ -203,53 +328,50 @@
 
         let statusBadge = '';
         if (record.status === 'accepted') {
-          statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full bg-green-100 text-green-800 font-medium">Diterima</span>';
+          statusBadge = '<span class="px-3 py-1 text-[10px] uppercase font-bold tracking-wider rounded-full bg-green-100 text-green-800">Diterima</span>';
         } else if (record.status === 'rejected') {
-          statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full bg-red-100 text-red-800 font-medium">Ditolak</span>';
+          statusBadge = '<span class="px-3 py-1 text-[10px] uppercase font-bold tracking-wider rounded-full bg-red-100 text-red-800">Ditolak</span>';
         } else {
-          statusBadge = '<span class="px-2 py-0.5 text-[12px] rounded-full font-medium" style="background:#fef9c3;color:#854d0e">Menunggu ACC</span>';
+          statusBadge = '<span class="px-3 py-1 text-[10px] uppercase font-bold tracking-wider rounded-full bg-yellow-100 text-yellow-800">Menunggu ACC</span>';
         }
 
-        // Tombol "Lihat" selalu ada untuk semua status
-        // Pending: Lihat + ACC + Tolak
-        // Accepted/Rejected: Lihat + Hapus
         let aksiBtns = `
             <button onclick="downloadPdf('${record.id}')" title="Lihat / Unduh PDF"
-              class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded">
-              <i data-lucide="eye" class="w-3.5 h-3.5"></i> Lihat
+              class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg outline-none">
+              <i data-lucide="eye" class="w-3 h-3"></i> Lihat
             </button>`;
 
         if (record.status === 'pending') {
           aksiBtns += `
             <button onclick="accKarya('${record.id}')" title="Terima Karya"
-              class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 rounded">
-              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> ACC
+              class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-tertiary-container hover:bg-tertiary rounded-lg outline-none">
+              <i data-lucide="check-circle" class="w-3 h-3"></i> ACC
             </button>
             <button onclick="tolakKarya('${record.id}')" title="Tolak Karya"
-              class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded">
-              <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> Tolak
+              class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-error hover:bg-on-error-container rounded-lg outline-none">
+              <i data-lucide="x-circle" class="w-3 h-3"></i> Tolak
             </button>`;
         } else {
           aksiBtns += `
             <button onclick="deleteSubmission('${record.id}')" title="Hapus"
-              class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus
+              class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-outline hover:text-error hover:bg-red-50 border border-outline-variant rounded-lg outline-none">
+              <i data-lucide="trash-2" class="w-3 h-3"></i> Hapus
             </button>`;
         }
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50';
+        tr.className = 'hover:bg-surface-container-low/30 transition-colors group bg-surface-container-lowest';
         tr.innerHTML = `
-          <td class="px-4 py-3">
-            <div class="font-medium text-gray-900">${name}</div>
-            <div class="text-xs text-gray-500">${formatDate(record.created)}</div>
+          <td class="px-4 py-5">
+            <div class="font-bold text-sm text-on-surface">${name}</div>
+            <div class="text-[11px] text-on-surface-variant font-medium mt-0.5">${typeof formatDate === 'function' ? formatDate(record.created) : record.created}</div>
           </td>
-          <td class="px-4 py-3 text-sm text-gray-600">${kelas}</td>
-          <td class="px-4 py-3 font-medium">${record.title}</td>
-          <td class="px-4 py-3">${record.word_count}</td>
-          <td class="px-4 py-3 font-bold text-gray-900">${record.score}</td>
-          <td class="px-4 py-3">${statusBadge}</td>
-          <td class="px-4 py-3 text-right">
+          <td class="px-4 py-5 text-sm text-on-surface-variant font-medium">${kelas}</td>
+          <td class="px-4 py-5"><span class="font-bold text-sm text-primary block truncate max-w-[200px]">${record.title}</span></td>
+          <td class="px-4 py-5 text-sm font-medium text-on-surface-variant">${record.word_count}</td>
+          <td class="px-4 py-5 font-bold text-primary">${record.score}</td>
+          <td class="px-4 py-5">${statusBadge}</td>
+          <td class="px-4 py-5 text-right">
             <div class="flex items-center justify-end gap-2">${aksiBtns}</div>
           </td>
         `;
@@ -279,6 +401,6 @@
         }
       }
     }
-  </script>
+</script>
 </body>
 </html>

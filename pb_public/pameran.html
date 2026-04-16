@@ -1,16 +1,97 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pameran Karya - NaskahSiswa</title>
+  <title>Pameran Karya - Sidig Cika</title>
   <meta name="description" content="Galeri karya tulis siswa yang telah mendapat persetujuan guru.">
 
-  <!-- CDN Wajib — urutan sesuai Bagian 12 -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&family=Lexend:wght@100..900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
   <script src="/app.js"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "surface": "#f2fbfd",
+                  "surface-container-lowest": "#ffffff",
+                  "on-error-container": "#93000a",
+                  "primary-fixed-dim": "#8bd0ef",
+                  "surface-tint": "#116681",
+                  "inverse-on-surface": "#e9f2f4",
+                  "surface-dim": "#d3dcde",
+                  "secondary-container": "#8debff",
+                  "surface-container-highest": "#dbe4e6",
+                  "on-tertiary-container": "#a5dede",
+                  "on-secondary-fixed-variant": "#004e5a",
+                  "on-tertiary-fixed-variant": "#0f4f4f",
+                  "on-background": "#141d1f",
+                  "on-primary": "#ffffff",
+                  "on-primary-fixed": "#001f2a",
+                  "primary-container": "#09637e",
+                  "secondary": "#006877",
+                  "on-tertiary": "#ffffff",
+                  "tertiary-fixed-dim": "#98d1d1",
+                  "on-surface": "#141d1f",
+                  "error": "#ba1a1a",
+                  "on-surface-variant": "#40484c",
+                  "secondary-fixed-dim": "#76d4e7",
+                  "on-primary-container": "#98ddfc",
+                  "surface-bright": "#f2fbfd",
+                  "surface-variant": "#dbe4e6",
+                  "tertiary": "#0a4c4c",
+                  "on-secondary-fixed": "#001f25",
+                  "on-tertiary-fixed": "#002020",
+                  "on-secondary-container": "#006b7a",
+                  "outline": "#70787d",
+                  "on-secondary": "#ffffff",
+                  "secondary-fixed": "#a3eeff",
+                  "background": "#f2fbfd",
+                  "surface-container-low": "#ecf5f7",
+                  "surface-container-high": "#e1eaec",
+                  "on-primary-fixed-variant": "#004d63",
+                  "on-error": "#ffffff",
+                  "primary": "#004a5f",
+                  "tertiary-fixed": "#b4eded",
+                  "error-container": "#ffdad6",
+                  "primary-fixed": "#bce9ff",
+                  "inverse-primary": "#8bd0ef",
+                  "outline-variant": "#bfc8cd",
+                  "inverse-surface": "#293234",
+                  "surface-container": "#e6eff1",
+                  "tertiary-container": "#2b6464"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "fontFamily": {
+                  "headline": ["Lexend"],
+                  "body": ["Lexend"],
+                  "label": ["Lexend"]
+          }
+        },
+      },
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Lexend', sans-serif; background-color: #EBF4F6; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
 
   <!-- Cek token sebelum render apapun -->
   <script>
@@ -18,104 +99,130 @@
       sessionStorage.setItem('redirect_message', 'Sesi berakhir, silakan login kembali.');
       window.location.href = '/index.html';
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Dinamik Routing untuk Role Teacher
+      if (pb.authStore.model && pb.authStore.model.role === 'teacher') {
+        document.querySelectorAll('a[href="/dashboard.html"]').forEach(el => el.href = '/guru.html');
+        document.querySelectorAll('a[href="/profile.html"]').forEach(el => el.style.display = 'none');
+      }
+
+      // Render header name
+      if (pb.authStore.model && pb.authStore.model.name) {
+        const el = document.getElementById('header-name');
+        if (el) el.textContent = pb.authStore.model.name;
+      }
+    });
   </script>
 
-  <style>
-    /* Grid 1 kolom mobile → 2 kolom desktop */
-    .feed-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.25rem;
-    }
-    @media (min-width: 768px) {
-      .feed-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    /* Line-clamp deskripsi: max 3 baris */
-    .desc-clamp {
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-  </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-
-  <!-- HEADER -->
-  <header class="bg-white shadow sticky top-0 z-50">
-    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <div class="font-bold text-xl text-blue-600">NaskahSiswa</div>
-        <span class="hidden sm:inline text-gray-400">|</span>
-        <a href="/dashboard.html"
-           class="hidden sm:flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 font-medium transition">
-          <i data-lucide="arrow-left" class="w-4 h-4"></i> Dashboard
+<body class="text-[#1a1a1a] bg-[#EBF4F6] selection:bg-[#7AB2B2] selection:text-white antialiased">
+  
+<div class="flex h-screen w-full overflow-hidden bg-[#EBF4F6]">
+    <!-- SideNavBar -->
+    <aside class="hidden md:flex flex-col h-full w-64 bg-white p-4 space-y-2 border-r border-gray-100 shadow-sm shrink-0">
+        <div class="mb-8 px-2 mt-4">
+            <p class="text-2xl font-bold text-[#09637E] font-headline tracking-wide">Sidig Cika</p>
+            <p class="inline-block mt-2 bg-[#7AB2B2] text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-widest">SISWA</p>
+            <span id="header-name" style="display: none;"></span>
+        </div>
+        
+        <a class="flex items-center gap-3 px-4 py-3 text-[#6b7280] hover:bg-[#EBF4F6] hover:text-[#09637E] transition-all rounded-lg" href="/dashboard.html">
+            <span class="material-symbols-outlined rounded" data-icon="dashboard">dashboard</span>
+            <span class="font-medium text-sm">Dashboard</span>
         </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-[#6b7280] hover:bg-[#EBF4F6] hover:text-[#09637E] transition-all rounded-lg" href="/profile.html">
+            <span class="material-symbols-outlined rounded" data-icon="person">person</span>
+            <span class="font-medium text-sm">Profil</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 bg-[#EBF4F6] text-[#09637E] rounded-lg transition-all" href="/pameran.html">
+            <span class="material-symbols-outlined rounded" data-icon="gallery_thumbnail">gallery_thumbnail</span>
+            <span class="font-medium text-sm">Pameran</span>
+        </a>
+
+        <div class="mt-auto pt-8 px-2 pb-4 border-t border-gray-100">
+            <button onclick="logout()" class="flex items-center gap-3 w-full px-2 py-2 text-red-600 hover:text-red-700 transition-colors font-medium text-sm">
+                <span class="material-symbols-outlined text-[18px]">logout</span>
+                Keluar
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 w-full overflow-y-auto relative pb-24 md:pb-0">
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-3 flex justify-around items-center z-50">
+    <a href="/dashboard.html" class="flex flex-col items-center gap-1 text-[#6b7280] hover:text-[#09637E]">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span class="text-[10px] font-medium">Dashboard</span>
+    </a>
+    <a href="/profile.html" class="flex flex-col items-center gap-1 text-[#6b7280] hover:text-[#09637E]">
+      <span class="material-symbols-outlined">person</span>
+      <span class="text-[10px] font-medium">Profil</span>
+    </a>
+    <a href="/pameran.html" class="flex flex-col items-center gap-1 text-[#09637E] font-semibold">
+      <span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">gallery_thumbnail</span>
+      <span class="text-[10px] font-medium">Pameran</span>
+    </a>
+    <button onclick="logout()" class="flex flex-col items-center gap-1 text-red-600/70 hover:text-red-700">
+      <span class="material-symbols-outlined">logout</span>
+      <span class="text-[10px] font-medium">Keluar</span>
+    </button>
+  </nav>
+
+  <!-- MAIN AREA -->
+  <main class="pt-8 pb-12 px-6 max-w-6xl mx-auto min-h-screen">
+
+    <!-- Hero Section -->
+    <header class="mb-12 border-b border-gray-200 pb-8">
+      <div class="inline-flex items-center px-3 py-1 rounded-full bg-[#7AB2B2] text-white font-semibold text-[10px] tracking-widest uppercase mb-4 shadow-sm">
+        Katalog Digital
       </div>
-      <nav class="flex items-center gap-4">
-        <a href="/dashboard.html"
-           class="sm:hidden text-gray-600 hover:text-gray-900">
-          <i data-lucide="arrow-left" class="w-5 h-5"></i>
-        </a>
-        <a href="/profile.html"
-           class="text-sm text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1">
-          <i data-lucide="user" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">Profil</span>
-        </a>
-        <button onclick="logout()"
-           class="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1">
-          <i data-lucide="log-out" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">Keluar</span>
-        </button>
-      </nav>
-    </div>
-  </header>
-
-  <!-- MAIN -->
-  <main class="max-w-5xl mx-auto px-4 py-8">
-
-    <!-- Judul halaman -->
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-        <i data-lucide="image" class="w-6 h-6 text-blue-500"></i>
-        Pameran Karya
-      </h1>
-      <p class="text-gray-500 text-sm mt-1">Karya tulis siswa yang telah mendapat persetujuan guru.</p>
-    </div>
+      <h1 class="text-4xl md:text-5xl font-bold text-[#09637E] mb-4 tracking-tight">Pameran Karya</h1>
+      <p class="text-[#6b7280] text-lg max-w-2xl leading-relaxed">
+        Karya terbaik yang telah dikurasi dan disetujui guru untuk menginspirasi eksplorasi intelektual dan kreativitas tanpa batas.
+      </p>
+    </header>
 
     <!-- State: loading -->
-    <div id="state-loading" class="text-center py-16 text-gray-400">
-      <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-3"></i>
-      <p>Memuat karya...</p>
+    <div id="state-loading" class="flex flex-col items-center justify-center py-20 text-[#6b7280]">
+      <div class="w-12 h-12 mb-4 animate-spin flex items-center justify-center">
+        <span class="material-symbols-outlined !text-4xl text-[#09637E]">progress_activity</span>
+      </div>
+      <p class="font-medium tracking-wide">Memuat karya-karya spektakuler...</p>
     </div>
 
     <!-- State: error -->
-    <div id="state-error" class="hidden text-center py-16">
-      <i data-lucide="alert-circle" class="w-8 h-8 text-red-400 mx-auto mb-3"></i>
-      <p class="text-red-500 font-medium mb-4">Gagal memuat data.</p>
+    <div id="state-error" class="hidden flex-col items-center justify-center py-20">
+      <div class="w-16 h-16 bg-red-50 border border-red-100 rounded-full flex items-center justify-center mb-4 text-red-500">
+        <span class="material-symbols-outlined !text-3xl">error</span>
+      </div>
+      <h3 class="text-xl font-bold text-[#1a1a1a] mb-2">Gagal memuat pameran</h3>
+      <p class="text-[#6b7280] mb-6 text-center max-w-sm">Terdapat masalah saat menarik data dari server. Silakan coba kembali.</p>
       <button onclick="fetchAndRenderPameran()"
-        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+        class="px-6 py-2.5 bg-[#09637E] text-white text-sm font-semibold rounded-lg hover:bg-[#088395] transition outline-none">
         Coba Lagi
       </button>
     </div>
 
     <!-- State: empty -->
-    <div id="state-empty" class="hidden text-center py-16 text-gray-400">
-      <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-3"></i>
-      <p class="text-lg font-medium">Belum ada karya yang dipamerkan.</p>
-      <p class="text-sm mt-1">Karya yang di-ACC guru akan tampil di sini.</p>
+    <div id="state-empty" class="hidden flex-col items-center justify-center py-24 text-center">
+      <div class="w-24 h-24 mb-6 opacity-20 text-[#09637E]">
+        <span class="material-symbols-outlined !text-7xl">auto_stories</span>
+      </div>
+      <h3 class="text-2xl font-bold text-[#09637E] mb-2">Belum ada karya yang dipamerkan</h3>
+      <p class="text-[#6b7280] max-w-sm mx-auto">Kami sedang menunggu karya-karya terbaik dari Anda. Karya yang telah di-ACC akan tampil istimewa di sini.</p>
     </div>
 
-    <!-- Feed grid -->
-    <div id="feed-grid" class="feed-grid hidden"></div>
+    <!-- Feed Grid Container -->
+    <div id="feed-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden"></div>
 
   </main>
+  </div>
+</div>
 
   <script>
-    // ─── Init Lucide ─────────────────────────────────────────────────────────
+    // ─── Init Lucide (Meskipun tidak dipakai penuh, sesuai request no delete)
     lucide.createIcons();
 
     // ─── Referensi elemen state ───────────────────────────────────────────────
@@ -127,12 +234,22 @@
     function showState(which) {
       stateLoading.classList.add('hidden');
       stateError.classList.add('hidden');
+      stateError.classList.remove('flex');
       stateEmpty.classList.add('hidden');
+      stateEmpty.classList.remove('flex');
       feedGrid.classList.add('hidden');
-      if (which === 'loading') stateLoading.classList.remove('hidden');
-      else if (which === 'error')   stateError.classList.remove('hidden');
-      else if (which === 'empty')   stateEmpty.classList.remove('hidden');
-      else if (which === 'feed')    feedGrid.classList.remove('hidden');
+
+      if (which === 'loading') {
+        stateLoading.classList.remove('hidden');
+      } else if (which === 'error') {
+        stateError.classList.remove('hidden');
+        stateError.classList.add('flex');
+      } else if (which === 'empty') {
+        stateEmpty.classList.remove('hidden');
+        stateEmpty.classList.add('flex');
+      } else if (which === 'feed') {
+        feedGrid.classList.remove('hidden');
+      }
     }
 
     // ─── renderPameran ────────────────────────────────────────────────────────
@@ -146,58 +263,59 @@
 
       records.forEach(record => {
         const name  = record.expand?.user_id?.name  || 'Anonim';
-        const kelas = record.expand?.user_id?.Kelas
-                   || record.expand?.user_id?.kelas
-                   || '';
+        const kelas = record.expand?.user_id?.Kelas || record.expand?.user_id?.kelas || '';
         const initials = getInitials(name);
         const avatarBg = getAvatarColor(name);
         const pdfUrl   = pb.files.getUrl(record, record.file);
-        const tanggal  = formatDate(record.created);
+        const tanggal  = typeof formatDate === 'function' ? formatDate(record.created) : record.created;
         const desc     = record.description ? record.description.trim() : '';
+        const wordCount = record.word_count || 0;
+        const scoreVal = record.score || 0;
 
         const card = document.createElement('article');
-        card.className = 'bg-white rounded-xl shadow-md p-5 flex flex-col gap-3 hover:shadow-lg transition-shadow';
+        // Gunakan struktur class Stitch Design
+        card.className = 'bg-surface-container-lowest rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary-container/5 group border border-outline-variant/10 flex flex-col h-full';
 
-        // Baris atas: avatar + nama + pill kelas
         const kelasHtml = kelas
-          ? `<span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium ml-2">${kelas}</span>`
+          ? `<span class="px-2 py-0.5 rounded-full bg-surface-container text-outline text-[10px] font-bold tracking-wider uppercase">Kelas ${kelas.replace('Kelas ','')}</span>`
           : '';
 
+        const descHtml = desc
+          ? `<p class="text-on-surface-variant text-sm line-clamp-3 leading-relaxed">${desc}</p>`
+          : `<p class="text-on-surface-variant/50 text-sm italic">Tidak ada deskripsi.</p>`;
+
         card.innerHTML = `
-          <!-- Baris atas: avatar + nama + kelas -->
-          <div class="flex items-center gap-2">
-            <div style="
-              width:32px; height:32px; border-radius:50%;
-              background:${avatarBg};
-              display:flex; align-items:center; justify-content:center;
-              color:white; font-weight:500; font-size:0.8rem;
-              flex-shrink:0;
-            ">${initials}</div>
-            <span class="font-medium text-gray-800 text-sm">${name}</span>
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+              <div style="width:36px; height:36px; border-radius:50%; background:${avatarBg}; display:flex; align-items:center; justify-content:center; color:white; font-weight:600; font-size:0.9rem; flex-shrink:0; letter-spacing: 1px;">
+                ${initials}
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-on-surface leading-none mb-1">${name}</p>
+                <span class="text-[10px] text-on-surface-variant/70 font-medium">${tanggal}</span>
+              </div>
+            </div>
             ${kelasHtml}
           </div>
 
-          <!-- Judul karya -->
-          <h2 style="font-size:1.1rem; font-weight:600; color:#111827; line-height:1.4;">
-            ${record.title}
-          </h2>
+          <div class="mb-6 flex-grow">
+            <h3 class="text-xl font-bold text-primary mb-3 leading-tight group-hover:text-secondary transition-colors line-clamp-2">${record.title}</h3>
+            ${descHtml}
+          </div>
 
-          <!-- Preview deskripsi (max 3 baris) -->
-          ${desc
-            ? `<p class="desc-clamp text-sm text-gray-500 leading-relaxed">${desc}</p>`
-            : `<p class="text-sm text-gray-400 italic">Tidak ada deskripsi.</p>`
-          }
-
-          <!-- Baris bawah: tanggal + tombol baca -->
-          <div class="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
-            <span class="text-xs text-gray-400 flex items-center gap-1">
-              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-              ${tanggal}
-            </span>
+          <div class="flex items-center justify-between mt-auto pt-4 border-t border-outline-variant/5">
+            <div class="flex gap-4">
+              <div class="flex items-center gap-1.5 text-on-surface-variant/60 text-xs font-medium">
+                <span class="material-symbols-outlined text-[16px]">description</span> ${wordCount}
+              </div>
+              <div class="flex items-center gap-1.5 text-on-surface-variant/60 text-xs font-medium">
+                <span class="material-symbols-outlined text-[16px]">workspace_premium</span> ${scoreVal}
+              </div>
+            </div>
             <a href="${pdfUrl}" target="_blank" rel="noopener noreferrer"
-               class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition">
-              <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+               class="flex items-center gap-2 px-4 py-2 bg-primary text-white text-xs font-bold tracking-wide rounded-lg hover:bg-secondary transition-colors shadow-sm cursor-pointer">
               Baca Karya
+              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
             </a>
           </div>
         `;
@@ -214,7 +332,6 @@
     async function fetchAndRenderPameran() {
       showState('loading');
       try {
-        // Tidak pakai parameter 'fields' agar semua field termasuk file tersedia
         const records = await pb.collection('submissions').getFullList({
           filter: 'status = "accepted"',
           expand: 'user_id'

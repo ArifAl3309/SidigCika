@@ -1,2 +1,40 @@
-/* Custom CSS */
-/* Tailwind CDN is being used for primary styling */
+/* Custom CSS / Minimalist Theme Overrides */
+
+/* Surfaces & Backgrounds */
+.bg-surface-container-lowest, .bg-white { background-color: #ffffff !important; border: 1px solid #EBF4F6 !important; }
+.bg-surface-container-low, .bg-surface-container, .bg-blue-50 { background-color: #EBF4F6 !important; border-color: #EBF4F6 !important; }
+.hover\:bg-surface-container:hover, .hover\:bg-surface-container-low\/30:hover, .hover\:bg-blue-100:hover, .hover\:bg-surface-container-lowest:hover { background-color: #EBF4F6 !important; }
+
+/* Text Colors */
+.text-on-surface, .text-gray-900 { color: #1a1a1a !important; }
+.text-on-surface-variant, .text-gray-500, .text-outline, .text-outline-variant, .text-cyan-600 { color: #6b7280 !important; }
+.text-primary, .text-cyan-900, .text-cyan-800, .text-blue-700, .text-blue-600 { color: #09637E !important; }
+
+/* Primaries / Buttons */
+.bg-primary, .bg-primary-container, .bg-cyan-800, .bg-blue-600, .bg-tertiary-container, .bg-error { background-color: #09637E !important; color: #ffffff !important; }
+.hover\:bg-secondary:hover, .hover\:bg-tertiary:hover, .hover\:bg-on-error-container:hover { background-color: #088395 !important; }
+.text-secondary { color: #088395 !important; }
+
+/* Badges & Accents - Using ONLY the allowed palette secondary (#7AB2B2) */
+.bg-green-100, .bg-red-100, .bg-yellow-100, .bg-blue-100, .bg-red-50, .bg-secondary-container\/30 {
+    background-color: #EBF4F6 !important;
+}
+.text-green-800, .text-red-800, .text-yellow-800, .text-blue-800 {
+    color: #09637E !important;
+}
+.text-red-500 {
+    color: #6b7280 !important;
+}
+
+/* Shadows (Simplifying) */
+.shadow-xl, .shadow-2xl, .shadow-lg, .shadow-md, .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Borders */
+.border-outline-variant\/10, .border-outline-variant\/5, .border-blue-200, .border-blue-600 { border-color: #EBF4F6 !important; }
+.divide-surface-container-high\/40 > :not([hidden]) ~ :not([hidden]),
+.divide-surface-container-high\/50 > :not([hidden]) ~ :not([hidden]),
+.divide-outline-variant\/10 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #f3f4f6 !important;
+}

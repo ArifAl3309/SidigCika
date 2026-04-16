@@ -81,11 +81,6 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
-        .glass-header {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
     </style>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.umd.js"></script>
@@ -94,41 +89,57 @@
       if (!pb.authStore.isValid) {
         sessionStorage.setItem('redirect_message', 'Sesi berakhir, silakan login kembali.');
         window.location.href = '/index.html';
+      } else if (pb.authStore.model?.role === 'teacher') {
+        window.location.href = '/guru.html';
       }
     </script>
 </head>
-<body class="bg-background text-on-surface antialiased">
-    <!-- TopNavBar Shell -->
-    <header class="fixed top-0 w-full z-50 glass-header shadow-sm shadow-cyan-900/5">
-        <div class="flex justify-between items-center h-16 px-8 max-w-7xl mx-auto">
-            <div class="flex items-center gap-6">
-                <span class="text-2xl font-bold text-cyan-900 dark:text-cyan-50">Sidig Cika</span>
-                <nav class="hidden md:flex items-center gap-6 text-sm tracking-wide">
-                    <a class="text-cyan-600/70 hover:text-cyan-900 transition-colors" href="/dashboard.html">Dashboard</a>
-                    <a class="text-cyan-700 font-semibold border-b-2 border-cyan-700" href="/profile.html">Profil</a>
-                    <a class="text-cyan-600/70 hover:text-cyan-900 transition-colors" href="/pameran.html">Pameran</a>
-                </nav>
-            </div>
-            <div class="flex items-center gap-4">
-                <span id="header-name" class="text-sm font-medium text-cyan-800"></span>
-                <button onclick="logout()" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">Keluar</button>
-            </div>
+<body class="bg-[#EBF4F6] text-[#1a1a1a] antialiased">
+<div class="flex h-screen w-full overflow-hidden bg-[#EBF4F6]">
+    <!-- SideNavBar -->
+    <aside class="hidden md:flex flex-col h-full w-64 bg-white p-4 space-y-2 border-r border-gray-100 shadow-sm shrink-0">
+        <div class="mb-8 px-2 mt-4">
+            <p class="text-2xl font-bold text-[#09637E] font-headline tracking-wide">Sidig Cika</p>
+            <p class="inline-block mt-2 bg-[#7AB2B2] text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-widest">SISWA</p>
+            <span id="header-name" style="display: none;"></span>
         </div>
-    </header>
+        
+        <a class="flex items-center gap-3 px-4 py-3 text-[#6b7280] hover:bg-[#EBF4F6] hover:text-[#09637E] transition-all rounded-lg" href="/dashboard.html">
+            <span class="material-symbols-outlined rounded" data-icon="dashboard">dashboard</span>
+            <span class="font-medium text-sm">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 bg-[#EBF4F6] text-[#09637E] rounded-lg transition-all" href="/profile.html">
+            <span class="material-symbols-outlined rounded" data-icon="person">person</span>
+            <span class="font-medium text-sm">Profil</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-[#6b7280] hover:bg-[#EBF4F6] hover:text-[#09637E] transition-all rounded-lg" href="/pameran.html">
+            <span class="material-symbols-outlined rounded" data-icon="gallery_thumbnail">gallery_thumbnail</span>
+            <span class="font-medium text-sm">Pameran</span>
+        </a>
 
-    <main class="pt-24 pb-20 px-6 max-w-5xl mx-auto min-h-screen">
+        <div class="mt-auto pt-8 px-2 pb-4 border-t border-gray-100">
+            <button onclick="logout()" class="flex items-center gap-3 w-full px-2 py-2 text-red-600 hover:text-red-700 transition-colors font-medium text-sm">
+                <span class="material-symbols-outlined text-[18px]">logout</span>
+                Keluar
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 w-full overflow-y-auto relative pb-24 md:pb-0">
+
+    <main class="pt-8 pb-12 px-6 max-w-5xl mx-auto min-h-screen">
         <!-- Profile Hero Section -->
         <section class="mb-12">
-            <div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-[#EBF4F6] flex flex-col md:flex-row md:items-center justify-between gap-8">
                 <div class="flex items-center gap-6">
-                    <div id="avatar" class="w-16 h-16 md:w-20 md:h-20 bg-primary-container bg-gradient-to-br from-primary-container to-primary flex items-center justify-center rounded-full text-white text-xl font-bold">
+                    <div id="avatar" class="w-16 h-16 md:w-20 md:h-20 bg-[#09637E] flex items-center justify-center rounded-full text-white text-xl font-bold">
                     </div>
                     <div>
                         <div class="flex xl:flex-row flex-col items-start xl:items-center gap-3 mb-1">
-                            <h1 id="profile-name" class="text-2xl md:text-3xl font-bold text-on-surface"></h1>
-                            <div id="profile-kelas"></div>
+                            <h1 id="profile-name" class="text-2xl md:text-3xl font-bold text-[#1a1a1a]"></h1>
+                            <div id="profile-kelas" class="text-[#7AB2B2]"></div>
                         </div>
-                        <p id="profile-stats" class="text-on-surface-variant text-sm flex items-center gap-2 mt-2">
+                        <p id="profile-stats" class="text-[#6b7280] text-sm flex items-center gap-2 mt-2">
                             Memuat statistik...
                         </p>
                     </div>
@@ -139,8 +150,8 @@
         <!-- Submission History Section -->
         <section>
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-semibold text-on-surface">Riwayat Karya</h2>
-                <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+                <h2 class="text-xl font-semibold text-[#1a1a1a]">Riwayat Karya</h2>
+                <div class="flex items-center gap-2 text-sm text-[#6b7280]">
                     <span class="material-symbols-outlined text-base">sort</span>
                     <span>Terbaru</span>
                 </div>
@@ -150,22 +161,24 @@
             </div>
         </section>
     </main>
+    </div>
+</div>
 
     <!-- Bottom Nav for Mobile -->
-    <nav class="md:hidden fixed bottom-0 w-full bg-white/80 backdrop-blur-lg border-t border-outline-variant/10 flex justify-around items-center h-16 px-4 z-50">
-        <a class="flex flex-col items-center gap-1 text-cyan-600/70" href="/dashboard.html">
+    <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-100 flex justify-around items-center h-16 px-4 z-50">
+        <a class="flex flex-col items-center gap-1 text-[#6b7280] hover:text-[#09637E]" href="/dashboard.html">
             <span class="material-symbols-outlined">dashboard</span>
             <span class="text-[10px] font-medium">Dashboard</span>
         </a>
-        <a class="flex flex-col items-center gap-1 text-cyan-800 font-bold" href="/profile.html">
+        <a class="flex flex-col items-center gap-1 text-[#09637E] font-bold" href="/profile.html">
             <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
             <span class="text-[10px]">Profil</span>
         </a>
-        <a class="flex flex-col items-center gap-1 text-cyan-600/70" href="/pameran.html">
+        <a class="flex flex-col items-center gap-1 text-[#6b7280] hover:text-[#09637E]" href="/pameran.html">
             <span class="material-symbols-outlined">gallery_thumbnail</span>
             <span class="text-[10px] font-medium">Pameran</span>
         </a>
-        <button class="flex flex-col items-center gap-1 text-red-600/70" onclick="logout()">
+        <button class="flex flex-col items-center gap-1 text-red-600/70 hover:text-red-700" onclick="logout()">
             <span class="material-symbols-outlined">logout</span>
             <span class="text-[10px] font-medium">Keluar</span>
         </button>

@@ -104,64 +104,72 @@
         if (!pb.authStore.isValid) {
             sessionStorage.setItem('redirect_message', 'Sesi berakhir, silakan login kembali.');
             window.location.href = '/index.html';
+        } else if (pb.authStore.model?.role === 'teacher') {
+            window.location.href = '/guru.html';
         }
     </script>
 </head>
 
-<body
-    class="bg-surface text-on-surface min-h-screen selection:bg-secondary-container selection:text-on-secondary-container">
+<body class="bg-[#EBF4F6] text-[#1a1a1a] min-h-screen selection:bg-[#7AB2B2] selection:text-white">
 
-    <!-- TopNavBar -->
-    <header
-        class="fixed top-0 w-full z-40 bg-white/70 backdrop-blur-md shadow-sm shadow-cyan-900/5 h-16 px-8 flex justify-between items-center max-w-full mx-auto">
-        <div class="flex items-center gap-8">
-            <span class="text-xl font-bold text-cyan-900 font-headline tracking-wide">Sidig Cika</span>
-            <nav class="hidden md:flex items-center gap-6">
-                <a class="text-cyan-700 font-bold border-b-2 border-cyan-700 text-sm tracking-wide py-1"
-                    href="/dashboard.html">Dashboard</a>
-                <a class="text-cyan-600/70 hover:text-cyan-900 transition-colors font-medium text-sm tracking-wide py-1"
-                    href="/profile.html">Profil</a>
-                <a class="text-cyan-600/70 hover:text-cyan-900 transition-colors font-medium text-sm tracking-wide py-1"
-                    href="/pameran.html">Pameran</a>
-            </nav>
+<div class="flex h-screen w-full overflow-hidden bg-[#EBF4F6]">
+    <!-- SideNavBar -->
+    <aside class="hidden md:flex flex-col h-full w-64 bg-white p-4 space-y-2 border-r border-gray-100 shadow-sm shrink-0">
+        <div class="mb-8 px-2 mt-4">
+            <p class="text-2xl font-bold text-[#09637E] font-headline tracking-wide">Sidig Cika</p>
+            <p class="inline-block mt-2 bg-[#7AB2B2] text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-widest">SISWA</p>
+            <span id="header-name" style="display: none;"></span>
         </div>
-        <div class="flex items-center gap-4">
-            <button onclick="logout()"
-                class="text-cyan-800 font-bold text-sm tracking-wide hover:text-cyan-600 transition-all duration-200">Keluar</button>
-        </div>
-    </header>
+        
+        <a class="flex items-center gap-3 px-4 py-3 bg-[#EBF4F6] text-[#09637E] rounded-lg transition-all" href="/dashboard.html">
+            <span class="material-symbols-outlined rounded" data-icon="dashboard">dashboard</span>
+            <span class="font-medium text-sm">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-[#6b7280] hover:bg-[#EBF4F6] hover:text-[#09637E] transition-all rounded-lg" href="/profile.html">
+            <span class="material-symbols-outlined rounded" data-icon="person">person</span>
+            <span class="font-medium text-sm">Profil</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-[#6b7280] hover:bg-[#EBF4F6] hover:text-[#09637E] transition-all rounded-lg" href="/pameran.html">
+            <span class="material-symbols-outlined rounded" data-icon="gallery_thumbnail">gallery_thumbnail</span>
+            <span class="font-medium text-sm">Pameran</span>
+        </a>
 
-    <main class="pt-24 pb-12 px-4 md:px-8 max-w-6xl mx-auto min-h-screen relative">
+        <div class="mt-auto pt-8 px-2 pb-4 border-t border-gray-100">
+            <button onclick="logout()" class="flex items-center gap-3 w-full px-2 py-2 text-red-600 hover:text-red-700 transition-colors font-medium text-sm">
+                <span class="material-symbols-outlined text-[18px]">logout</span>
+                Keluar
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 w-full overflow-y-auto relative pb-24 md:pb-0">
+        <main class="pt-8 pb-12 px-4 md:px-8 max-w-6xl mx-auto min-h-screen relative">
         <div class="flex flex-col gap-2 mb-8">
-            <span class="text-[0.75rem] font-bold uppercase tracking-[0.05em] text-secondary">Statistik Akademik</span>
-            <h1 class="text-[1.75rem] font-semibold tracking-[-0.01em] text-on-surface">Leaderboard Kelas</h1>
+            <span class="text-[0.75rem] font-bold uppercase tracking-[0.05em] text-[#6b7280]">Statistik Akademik</span>
+            <h1 class="text-[1.75rem] font-semibold tracking-[-0.01em] text-[#1a1a1a]">Leaderboard Kelas</h1>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <!-- Main Leaderboard Table -->
-            <div
-                class="lg:col-span-12 bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm shadow-primary-container/5 relative">
+            <div class="lg:col-span-12 bg-white rounded-xl overflow-hidden shadow-sm border border-[#EBF4F6] relative">
 
                 <div id="table-error" class="hidden p-8 text-center text-gray-500">
                     <p class="mb-4">Gagal memuat data.</p>
                     <button onclick="fetchAndRenderLeaderboard()"
-                        class="px-4 py-2 bg-primary text-white rounded hover:bg-cyan-900 transition font-bold">Coba
-                        Lagi</button>
+                        class="px-4 py-2 bg-[#09637E] text-white rounded hover:bg-[#088395] transition font-bold">Coba Lagi</button>
                 </div>
 
                 <div class="overflow-x-auto w-full" id="leaderboard-table">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-surface-container text-on-surface-variant">
+                            <tr class="bg-gray-50 text-[#6b7280]">
                                 <th class="px-6 py-4 font-semibold text-xs uppercase tracking-wider"># Rank</th>
                                 <th class="px-6 py-4 font-semibold text-xs uppercase tracking-wider">Kelas</th>
-                                <th class="px-6 py-4 font-semibold text-xs uppercase tracking-wider text-center">Total
-                                    Poin</th>
-                                <th class="px-6 py-4 font-semibold text-xs uppercase tracking-wider text-center">Jumlah
-                                    Karya</th>
+                                <th class="px-6 py-4 font-semibold text-xs uppercase tracking-wider text-center">Total Poin</th>
+                                <th class="px-6 py-4 font-semibold text-xs uppercase tracking-wider text-center">Jumlah Karya</th>
                             </tr>
                         </thead>
-                        <tbody id="leaderboard-body" class="divide-y divide-outline-variant/10">
+                        <tbody id="leaderboard-body" class="divide-y divide-gray-100">
                             <tr>
                                 <td colspan="4" class="py-12 text-center text-gray-500 font-medium">Memuat data...</td>
                             </tr>
@@ -171,22 +179,23 @@
             </div>
         </div>
     </main>
+    </div>
+</div>
 
     <!-- Floating Action Button -->
     <button id="fab-submit" onclick="openModal()"
-        class="fixed bottom-8 right-8 w-14 h-14 bg-primary-container text-white rounded-full flex items-center justify-center shadow-lg hover:bg-primary hover:scale-110 active:scale-95 transition-all z-40 outline-none focus:ring-4 focus:ring-secondary disabled:opacity-50 disabled:cursor-not-allowed">
+        class="fixed bottom-8 right-8 w-14 h-14 bg-[#09637E] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#088395] transition-all z-40 outline-none focus:ring-2 focus:ring-[#7AB2B2] disabled:opacity-50 disabled:cursor-not-allowed">
         <span class="material-symbols-outlined text-2xl" id="fab-icon">add</span>
         <span id="fab-text" class="hidden font-mono text-sm tracking-widest absolute"></span>
     </button>
 
     <!-- Modal Submit -->
     <div id="submit-modal"
-        class="fixed inset-0 z-[60] bg-on-surface/40 backdrop-blur-sm hidden items-center justify-center p-4 transition-opacity opacity-0">
-        <div class="bg-white w-full max-w-[480px] rounded-xl shadow-2xl overflow-hidden flex flex-col">
-            <div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
-                <h2 class="text-xl font-bold text-primary">Kumpulkan Naskah</h2>
-                <button type="button" onclick="closeModal()"
-                    class="text-on-surface-variant hover:text-on-surface outline-none">
+        class="fixed inset-0 z-[60] bg-gray-900/50 hidden items-center justify-center p-4 transition-opacity opacity-0">
+        <div class="bg-white w-full max-w-[480px] rounded-xl shadow-lg overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-[#09637E]">Kumpulkan Naskah</h2>
+                <button type="button" onclick="closeModal()" class="text-[#6b7280] hover:text-[#1a1a1a] outline-none">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
@@ -196,48 +205,44 @@
                     class="hidden p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-200"></div>
 
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-[0.75rem] font-bold text-on-surface-variant uppercase tracking-wider">Judul
-                        Naskah</label>
+                    <label class="text-[0.75rem] font-bold text-[#1a1a1a] uppercase tracking-wider">Judul Naskah</label>
                     <div class="relative">
                         <input id="title-input"
-                            class="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-secondary transition-all pr-12"
+                            class="w-full bg-[#EBF4F6] border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#09637E] transition-all pr-12 text-[#1a1a1a]"
                             required maxlength="150" placeholder="Masukkan judul menarik..." type="text" />
-                        <span class="absolute bottom-3 right-3 text-[10px] text-outline"><span
+                        <span class="absolute bottom-3 right-3 text-[10px] text-[#6b7280]"><span
                                 id="title-counter">0</span> / 150</span>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-1.5">
-                    <label
-                        class="text-[0.75rem] font-bold text-on-surface-variant uppercase tracking-wider">Deskripsi</label>
+                    <label class="text-[0.75rem] font-bold text-[#1a1a1a] uppercase tracking-wider">Deskripsi</label>
                     <div class="relative">
                         <textarea id="desc-input"
-                            class="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-secondary transition-all resize-none pr-12"
+                            class="w-full bg-[#EBF4F6] border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#09637E] transition-all resize-none pr-12 text-[#1a1a1a]"
                             rows="4" maxlength="500"
                             placeholder="Tuliskan sinopsis singkat atau latar belakang karya..."></textarea>
-                        <span class="absolute bottom-3 right-3 text-[10px] text-outline"><span
+                        <span class="absolute bottom-3 right-3 text-[10px] text-[#6b7280]"><span
                                 id="desc-counter">0</span> / 500</span>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-[0.75rem] font-bold text-on-surface-variant uppercase tracking-wider">File
-                        PDF</label>
+                    <label class="text-[0.75rem] font-bold text-[#1a1a1a] uppercase tracking-wider">File PDF</label>
 
                     <div id="file-drop-area"
-                        class="border-2 border-dashed border-outline-variant rounded-lg p-6 flex flex-col items-center justify-center gap-2 hover:bg-surface-container transition-all cursor-pointer">
+                        class="border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg p-6 flex flex-col items-center justify-center gap-2 hover:bg-[#EBF4F6] hover:border-[#7AB2B2] transition-all cursor-pointer">
                         <input type="file" id="file-input" accept="application/pdf" class="hidden" required>
                         <button type="button" id="file-btn" class="hidden text-sm">Pilih PDF</button>
-                        <span class="material-symbols-outlined text-primary-container text-3xl">cloud_upload</span>
-                        <p id="file-info-text" class="text-xs font-medium text-on-surface-variant">Klik untuk unggah
-                            atau seret file PDF di sini</p>
-                        <p class="text-[10px] text-outline">Maksimal 5MB</p>
+                        <span class="material-symbols-outlined text-[#7AB2B2] text-3xl">cloud_upload</span>
+                        <p id="file-info-text" class="text-xs font-medium text-[#6b7280]">Klik untuk unggah atau seret file PDF di sini</p>
+                        <p class="text-[10px] text-gray-400">Maksimal 5MB</p>
                     </div>
                     <p id="file-error" class="text-red-500 text-xs mt-1 hidden"></p>
                 </div>
 
                 <button id="submit-btn"
-                    class="w-full bg-gradient-to-br from-primary-container to-primary text-white font-bold py-3.5 rounded-lg shadow-md hover:shadow-lg transition-all mt-2 active:scale-[0.98] outline-none"
+                    class="w-full bg-[#09637E] text-white font-bold py-3.5 rounded-lg shadow-sm hover:bg-[#088395] transition-all mt-2 outline-none"
                     type="submit">
                     Kirim Karya
                 </button>
