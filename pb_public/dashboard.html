@@ -182,9 +182,27 @@
     </div>
 </div>
 
-    <!-- Floating Action Button -->
+    <!-- Bottom Nav for Mobile -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-100 flex justify-around items-center h-16 px-4 z-50">
+        <a class="flex flex-col items-center gap-1 text-[#09637E] font-bold" href="/dashboard.html">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+            <span class="text-[10px]">Dashboard</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-[#6b7280] hover:text-[#09637E]" href="/profile.html">
+            <span class="material-symbols-outlined">person</span>
+            <span class="text-[10px] font-medium">Profil</span>
+        </a>
+        <a class="flex flex-col items-center gap-1 text-[#6b7280] hover:text-[#09637E]" href="/pameran.html">
+            <span class="material-symbols-outlined">gallery_thumbnail</span>
+            <span class="text-[10px] font-medium">Pameran</span>
+        </a>
+        <button class="flex flex-col items-center gap-1 text-red-600/70 hover:text-red-700" onclick="logout()">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="text-[10px] font-medium">Keluar</span>
+        </button>
+    </nav>    <!-- Floating Action Button -->
     <button id="fab-submit" onclick="openModal()"
-        class="fixed bottom-8 right-8 w-14 h-14 bg-[#09637E] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#088395] transition-all z-40 outline-none focus:ring-2 focus:ring-[#7AB2B2] disabled:opacity-50 disabled:cursor-not-allowed">
+        class="fixed bottom-24 md:bottom-8 right-4 md:right-8 w-14 h-14 bg-[#09637E] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#088395] transition-all z-40 outline-none focus:ring-2 focus:ring-[#7AB2B2] disabled:opacity-50 disabled:cursor-not-allowed">
         <span class="material-symbols-outlined text-2xl" id="fab-icon">add</span>
         <span id="fab-text" class="hidden font-mono text-sm tracking-widest absolute"></span>
     </button>
